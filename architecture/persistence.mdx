@@ -1,0 +1,103 @@
+---
+title: Persistence
+description: Understand Zeta's SQLite and EF Core persistence — connection management, bounded concurrency, migrations, integrity triggers, and storage safeguards.
+---
+
+## Persistence architecture
+
+Learn how Zeta persists application state with SQLite and EF Core, including connection management, bounded concurrency, migrations, database integrity contracts, and storage safeguards.
+
+The persistence implementation lives in `src/Zeta.Infrastructure/`. `CommerceDb.cs` defines the EF Core model and data-session boundary. `SqliteStore.cs` coordinates SQLite connections, sessions, transactions, startup validation, and migration handling.
+
+## Database technology
+
+Zeta uses the following database configuration:
+
+- **Database:** SQLite
+- **ORM:** EF Core `10.0.12`
+- **Journal mode:** WAL
+- **Foreign keys:** Enabled
+- **Synchronization:** `synchronous=FULL`
+- **Command timeout:** 5 seconds
+- **Concurrency model:** One serialized writer and up to four readers
+- **Native provider validation:** The application validates that the bundled native SQLite version is compatible before opening the store
+
+WAL mode allows readers to continue while a writer commits changes. Zeta still serializes writes explicitly so application workflows have predictable transaction boundaries and bounded contention.
+
+## Connection and concurrency
+
+`SqliteStore.cs` coordinates connections, data sessions, and transactions. The store permits one serialized writer and up to four concurrent readers.
+
+The relevant limits are:
+
+- **Writer acquisition timeout:** 5 seconds
+- **Database command timeout:** 5 seconds
+- **Readers:** Up to 4 concurrent reader sessions
+- **Writer:** One serialized writer
+
+A writer that cannot acquire the store within the acquisition timeout fails instead of waiting indefinitely. Database commands use the same five-second operational limit to prevent stalled work from holding application resources without a bounded failure.
+
+## Migrations
+
+EF Core migrations are located in `src/Zeta.Infrastructure/Migrations/`.
+
+The migration set contains:
+
+- `20261010163720_InitialSyntheticStore`
+- `20261010165002_DurableReservationBatches`
+- `CommerceDbModelSnapshot`
+
+Migrations define both schema changes and database-level integrity contracts. Constraints and triggers protect the following invariants:
+
+- Synthetic business scope
+- Valid stock states
+- No exposed stock returning to `AVAILABLE`
+- Positive order quantities
+- Uniqueness of active allocations
+- One unfinished delivery attempt per order
+- Uniqueness of order and unit evidence
+- Protected audit and evidence history
+- Restore-review flags
+- Reservation-batch relationships
+
+Before applying pending migrations, Zeta creates a pre-upgrade encrypted snapshot. The snapshot provides a recovery point if the upgrade process fails or the resulting store requires investigation.
+
+## Storage safeguards
+
+Zeta validates the storage environment before opening the database. The safeguards prevent the application from using locations or database states that could cause synchronization conflicts, ownership ambiguity, data loss, or incompatible upgrades.
+
+<Callout kind="alert">
+
+- Refuses UNC paths.
+- Refuses obvious OneDrive and Dropbox paths.
+- Requires local, unsynchronized storage.
+- Refuses to open a second process against the same store.
+- Refuses databases with newer schemas than the application supports.
+- Validates SQLite integrity and foreign-key integrity.
+- Refuses incompatible native SQLite versions.
+- Does not silently create an empty replacement store when an existing database or key file is damaged.
+
+</Callout>
+
+The application treats an existing store without its required key material as a failure condition. It does not replace the damaged store with a new empty database, which prevents an initialization error from appearing as data loss.
+
+## Data directory
+
+Normal Windows execution stores persistence data under:
+
+```text
+%LOCALAPPDATA%\Zeta\Synthetic-v1
+```
+
+The directory contains:
+
+```text
+%LOCALAPPDATA%\Zeta\Synthetic-v1\
+├── SQLite database
+├── .owner
+├── owner.keys
+├── preferences.cfg
+└── encrypted backups
+```
+
+The `.owner` file provides exclusive process ownership. `owner.keys` contains the Windows DPAPI-protected key material used for encrypted inventory and backup operations. `preferences.cfg` stores application preferences, while encrypted backups provide same-user recovery data without storing the encryption keys inside the backup package.

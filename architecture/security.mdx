@@ -1,0 +1,51 @@
+---
+title: Security
+description: Learn how Zeta protects inventory with AES-GCM encryption, manages keys with Windows DPAPI, and secures encrypted backups.
+---
+
+## Security architecture
+
+Zeta protects synthetic inventory codes with authenticated encryption, separates encryption from duplicate detection, and binds normal key storage to the Windows user who created the installation. This page describes how Zeta encrypts inventory codes, manages encryption keys, generates fingerprints for deduplication, and protects encrypted backups.
+
+## Key management
+
+Normal Windows execution generates 64 bytes of installation key material. Zeta splits this material into two independent 32-byte keys:
+
+- **AES key:** Encrypts inventory code values.
+- **HMAC key:** Generates keyed fingerprints for duplicate detection.
+
+Zeta protects the combined key material with Windows DPAPI using the `CurrentUser` scope. The wrapped material is stored in `owner.keys` within the local Zeta data directory.
+
+If Zeta detects an existing database but cannot find its key file, it refuses to create replacement keys. Creating new keys would make existing encrypted inventory and backups unrecoverable while leaving the database present, so Zeta treats the condition as a key integrity failure instead.
+
+Isolated smoke-test and demo-preview executions use ephemeral in-memory keys. These keys are created for the isolated run and are not persisted for later recovery.
+
+## Inventory encryption
+
+Zeta encrypts each inventory code with AES-GCM. Every encrypted value uses a fresh random 12-byte nonce and a 16-byte authentication tag. The associated data is tied to the `demo-business` scope, which prevents ciphertext from being valid outside its intended synthetic business context.
+
+Encrypted values use the `v1:` ciphertext format. The format identifies the encryption version while preserving the nonce, ciphertext, and authentication data required for decryption.
+
+Duplicate detection does not decrypt every stored value or require plaintext codes. Zeta computes a separate keyed HMAC fingerprint for each code and compares fingerprints during import. The HMAC key is distinct from the AES encryption key.
+
+<Callout kind="info">
+
+Plaintext inventory codes are never stored in the database. The database stores encrypted values and separate keyed fingerprints.
+
+</Callout>
+
+## Backup encryption
+
+Zeta creates backups with SQLite online backup operations. Before packaging a backup, the application validates the candidate database's schema, SQLite integrity, foreign-key integrity, and decryptability of protected data.
+
+After validation, Zeta serializes the database as an encrypted package. The package does not contain the encryption keys. Recovery therefore requires both the original DPAPI-protected key material and the same Windows user context that can unwrap those keys.
+
+Restore does not replace the active database immediately. Zeta first opens and validates the backup in a separate candidate database. Only after candidate validation can the restore proceed to cutover.
+
+Stock that may have changed after the snapshot is handled conservatively during restore. Zeta quarantines potentially affected stock instead of returning it directly to available inventory, preserving the need for review when the snapshot cannot prove the current state.
+
+## Lock screen
+
+Locking the application pauses new work, clears sensitive windows, clears application-owned clipboard contents, and prevents access to the commerce service while the application remains locked.
+
+The lock screen is a demo control, not production authentication or reauthentication. Unlocking is explicitly treated as a demo confirmation and does not establish the identity of a production user.

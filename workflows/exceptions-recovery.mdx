@@ -1,0 +1,146 @@
+---
+title: "Exceptions & Recovery"
+description: "Handle review-required states, quarantine, cancellation, external closure, batch reservations, and startup recovery in Zeta."
+---
+
+## Understand the exception workflow
+
+Zeta handles uncertain delivery outcomes, quarantine, cancellation, batch reservation, and recovery from interrupted work without automatically repeating an external effect. When the application cannot prove whether delivery completed, it preserves the possible effect, moves the order into review, and requires an operator to decide what happens next.
+
+<Callout kind="alert">
+
+Zeta never automatically resends work with an uncertain outcome. Investigate the order, review its evidence, and choose an explicit closure or retry action.
+
+</Callout>
+
+## Review-required state
+
+An order moves to `REVIEW_REQUIRED` when delivery becomes uncertain, an attempt is interrupted, or the application detects a crash-after-effect condition. These outcomes mean that the delivery provider may have acted even though Zeta could not commit a definitive result.
+
+During recovery, Zeta quarantines assigned units that are not confirmed as delivered and marks the affected delivery attempts as interrupted or unknown. The order remains available for manual investigation before you fulfill it, requeue it, or close the exception.
+
+A review-required order does not authorize an automatic resend. Treat the existing allocation and any possible external effect as part of the investigation.
+
+## Quarantine units
+
+Zeta quarantines units in any of these situations:
+
+- The delivery outcome is uncertain.
+- A unit was exposed during reveal.
+- Delivery was interrupted before Zeta committed a final outcome.
+
+A quarantined unit cannot return to `AVAILABLE`. This prevents the same inventory from being assigned to another order while its delivery status remains unresolved.
+
+To move a quarantined unit to `DELIVERED`, record seller attestation for the assigned unit. Seller attestation provides explicit evidence for the unit, but it does not represent provider verification or buyer receipt.
+
+## Cancel an order
+
+Cancellation follows different paths depending on whether any assigned unit was exposed or delivery could have taken effect.
+
+<Tabs>
+<Tab title="Before exposure">
+
+If the order has not exposed any assigned units, Zeta can safely release its allocations:
+
+- Valid units return to `AVAILABLE`.
+- Expired units become `INVALID`.
+- The order can move to `CANCELLED`.
+
+The release removes the reservation without claiming that delivery occurred.
+
+</Tab>
+<Tab title="After exposure or during uncertain delivery">
+
+If a unit was exposed or delivery is uncertain, Zeta does not return the unit to available stock. The unit remains quarantined, and the possible delivery effect remains attached to the order for review.
+
+The order moves to `REVIEW_REQUIRED`. Resolve the exception through seller attestation or explicit exception closure rather than treating the cancellation as a clean release.
+
+</Tab>
+</Tabs>
+
+## Close an order externally
+
+Use external closure only when no allocation exists. An order can move to `CLOSED_EXTERNAL` before reservation, allowing you to record that the order was handled outside the application.
+
+External closure does not invent application delivery, stock allocation, or delivery evidence. Once an allocation exists, use the review and exception workflow instead.
+
+## Reserve orders in a batch
+
+The Orders screen supports explicit batch reservation for up to 100 selected orders. Batch reservation is limited to reservation: it does not approve, send, reveal, or deliver inventory.
+
+A durable reservation batch:
+
+- Freezes the selected order IDs and their expected versions.
+- Persists one target record for each selected order.
+- Reserves each target independently.
+- Stores the result for every target.
+- Survives an application restart.
+- Does not repeat a target that already committed successfully.
+
+A failure for one target does not silently convert the batch into an all-or-nothing operation. Inspect each stored target result to determine which orders reserved and which require further action.
+
+## Recover interrupted work
+
+Run recovery at startup or from **Settings** when an unfinished delivery attempt may remain in the local store. Recovery is deliberately conservative because the provider effect may have occurred before the application stopped.
+
+<Steps>
+<Step title="Locate unfinished attempts">
+
+Zeta searches for delivery attempts that do not have a completed outcome. These attempts identify work that may have been interrupted before the application committed its final result.
+
+</Step>
+
+<Step title="Quarantine non-delivered units">
+
+Zeta quarantines every assigned unit that is not already confirmed as delivered. The units remain unavailable for new reservations while the possible effect is investigated.
+
+</Step>
+
+<Step title="Mark attempts as interrupted or unknown">
+
+Zeta records the attempt as interrupted or unknown so the history shows why the delivery cannot be treated as confirmed or rejected.
+
+</Step>
+
+<Step title="Move affected orders to review">
+
+Zeta moves the affected orders to `REVIEW_REQUIRED`. Review the allocation, exposure state, delivery attempt, and available evidence before selecting the next action.
+
+</Step>
+
+<Step title="Choose an explicit outcome">
+
+Do not resend automatically. Fulfill through seller attestation when the seller can confirm delivery, requeue only when the workflow establishes that retrying is safe, or close the exception when the order cannot be fulfilled.
+
+</Step>
+</Steps>
+
+<Callout kind="info">
+
+Recovery changes state to preserve inventory and evidence. It does not determine that an external delivery failed, and it does not retry the delivery.
+
+</Callout>
+
+### Recovery tools in Settings
+
+The Settings screen provides the following recovery operations:
+
+- **Encrypted snapshot creation:** Create an encrypted same-user snapshot of the local store.
+- **Snapshot restore:** Restore a snapshot through a candidate database before cutover. Restore handling conservatively reviews stock that may have changed after the snapshot.
+- **Interrupted-attempt recovery:** Locate unfinished attempts and apply the quarantine and review workflow.
+- **Durable batch inspection and resume:** Inspect persisted reservation batches and continue targets that have not already committed.
+
+## Close an exception
+
+A `REVIEW_REQUIRED` order has two explicit closure paths:
+
+- Move the order to `CLOSED_EXCEPTION` when the exception is reviewed and the order will not be fulfilled.
+- Record seller attestation for the assigned units and move the order to `FULFILLED` when every assigned unit has sufficient evidence.
+
+Seller attestation must cover the assigned units and use a synthetic `DEMO-` reference. Fulfilling the order through attestation records the seller's statement; it does not change the evidence into provider confirmation.
+
+<Callout kind="success">
+
+An exception is resolved only after the order state, unit states, delivery attempt, and evidence agree. Review the complete order history before closing it.
+
+</Callout>

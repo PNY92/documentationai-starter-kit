@@ -1,78 +1,163 @@
 ---
-title: Set Up Your Documentation
-description: 'A minimal, editable starting point for your own documentation site.'
+title: Introduction
+description: Discover Zeta, a Windows-first Godot .NET desktop prototype for managing synthetic digital inventory and orders with encrypted local persistence.
 ---
-## Start here (5–10 minutes)
 
-1. Edit this page so it describes your product and audience.
+## Manage a synthetic warehouse
 
-2. Customize your onboarding flow in the [Quickstart](/quickstart) page.
+Use Zeta to manage synthetic inventory, simulate order fulfillment workflows, and visualize committed warehouse state through conventional management screens or an optional 3D view. The prototype combines local persistence, deterministic command handling, recovery tooling, and synthetic marketplace and delivery adapters in one Windows desktop application.
 
-3. Delete or rewrite any sections and pages you do not plan to use.
+## What is Zeta?
 
-4. Invite a teammate to review the structure and concepts starting from [Core Concepts](/concepts).
+Zeta is a Windows-first Godot .NET desktop prototype for managing synthetic digital inventory and synthetic orders. It supports product and inventory management, exact item-to-product mappings, order reservation, simulated delivery, exception handling, audit history, and encrypted same-user snapshots.
 
-<Callout kind="alert" collapsed="false">
-  This site ships with placeholder content. Edit the text, links, and examples so they match your product before sharing it with others.
+Zeta is not a live Shopee integration or a production fulfillment system. Its marketplace and delivery effects are represented by in-memory synthetic adapters, so the application can demonstrate order and recovery behavior without contacting external services or handling real customer data.
+
+## The synthetic boundary
+
+Every value that represents marketplace or fulfillment data must remain synthetic. The application requires the `DEMO-` prefix for:
+
+- Imported inventory codes.
+- Products.
+- Item and model identifiers.
+- Recipients.
+- Order IDs.
+- Fixture evidence and seller-attestation references.
+
+Zeta enforces this boundary across imports, order workflows, evidence, persistence, and test fixtures. Do not enter real credentials, customer information, delivery codes, or marketplace identifiers.
+
+<Callout kind="alert">
+
+Zeta does not connect to Shopee or any other live marketplace. Treat every record, code, recipient, order, and evidence reference as synthetic, and use the `DEMO-` prefix wherever the application requires it.
+
 </Callout>
 
-## What you get
+## What Zeta is not
 
-<Columns cols="3">
-  <Card title="Docs structure" href="/quickstart" icon="book-open" horizontal="false">
-    A clear navigation layout with starter pages you can rename or replace.
+The prototype deliberately excludes capabilities that would require production integrations, identity controls, or operational safeguards:
+
+- Live Shopee calls or other live marketplace integrations.
+- Real customer or seller credentials.
+- Real delivery or automatic fulfillment.
+- XP, rewards, or gamification.
+- Portable or lost-device recovery.
+- Production authentication.
+- Production deployment signing.
+
+These exclusions define the prototype boundary. Synthetic delivery outcomes can be confirmed, rejected, pending, partial, unknown, or marked as a simulated crash after effect, but they never represent a real provider response.
+
+## Architecture overview
+
+Zeta uses a layered architecture that keeps domain behavior independent from Godot, EF Core, and SQLite.
+
+```text
+Godot UI
+    ↓
+CommerceService
+    ↓
+Core interfaces and domain models
+    ↓
+EF Core DataSession
+    ↓
+SQLite
+```
+
+External effects cross explicit ports and adapters:
+
+```text
+CommerceService
+    ├── IMarketplaceAdapter → SyntheticMarketplace
+    └── IDeliveryAdapter    → SyntheticDelivery
+```
+
+`Zeta.Core` contains the pure C# domain model, state transitions, ports, and application service. `Zeta.Infrastructure` provides EF Core persistence, SQLite coordination, encryption, and synthetic adapters. `Zeta.Godot` renders the desktop interface and warehouse visualization. Tests use temporary SQLite databases with ephemeral encryption keys to validate persistence and workflow invariants.
+
+## Key capabilities
+
+<Columns cols={3}>
+
+  <Card title="Synthetic inventory management" href="/concepts" icon="database" horizontal="false">
+
+    Create products, import synthetic codes, track stock states, configure exact mappings, and identify low-stock products.
+
   </Card>
 
-  <Card title="Components" href="#try-a-few-components" icon="layout-grid" horizontal="false" target="_self">
-    Prebuilt blocks like Callouts, Steps, Tabs, and Cards to keep pages clean.
+  <Card title="Order lifecycle simulation" href="/concepts" icon="bar-chart" horizontal="false">
+
+    Observe synthetic orders, reserve complete order lines atomically, approve delivery, simulate outcomes, and manage exceptions.
+
   </Card>
 
-  <Card title="API reference hook" href="/authentication" icon="code" horizontal="false">
-    A placeholder `openapi.yaml` you can swap with your real API spec.
+  <Card title="3D warehouse visualization" href="/concepts" icon="box" horizontal="false">
+
+    Inspect committed inventory and order projections in an optional orthographic warehouse view without changing business state.
+
   </Card>
+
+  <Card title="Encrypted local persistence" href="/concepts" icon="lock" horizontal="false">
+
+    Store inventory and operational data in encrypted local SQLite storage protected by Windows user-scoped key material.
+
+  </Card>
+
+  <Card title="Conservative recovery" href="/concepts" icon="shield" horizontal="false">
+
+    Detect interrupted delivery attempts, quarantine potentially exposed units, and move uncertain orders to review instead of retrying automatically.
+
+  </Card>
+
+  <Card title="Audit trail" href="/concepts" icon="book-open" horizontal="false">
+
+    Record business actions, delivery evidence, command results, and recovery decisions in protected audit history.
+
+  </Card>
+
 </Columns>
 
-## Make your first edit
+## Explore the project
 
 <Steps>
-  <Step title="Rewrite this page" icon="edit" title-type="p">
-    Update the title, description, and sections in `introduction` so they reflect your product and documentation goals.
+
+  <Step title="Run the prototype" icon="play-circle" title-type="p">
+
+    Start the Windows desktop application and review the seeded synthetic products, stock, and orders.
+
   </Step>
 
-  <Step title="Customize Quickstart" icon="zap" title-type="p">
-    Replace the steps in `quickstart` with your real onboarding flow so new readers know exactly how to get started.
+  <Step title="Follow a synthetic order" icon="zap" title-type="p">
+
+    Refresh an order, reserve its mapped inventory, approve delivery, and choose a simulated outcome. The application keeps uncertain outcomes available for review.
+
   </Step>
 
-  <Step title="Remove or repurpose samples" icon="trash" title-type="p">
-    Delete unused sample sections and pages, or rewrite them with your own content to keep navigation focused.
+  <Step title="Inspect the architecture" icon="code" title-type="p">
+
+    Trace commands from the Godot interface through `CommerceService`, the core ports, EF Core persistence, and the SQLite store.
+
   </Step>
+
 </Steps>
 
-## Try a few components
+## Continue with the documentation
 
-You can browse the component gallery in the [Components](/components) page for ready-to-use examples of Cards, Callouts, Steps, Tabs, and more.
+<Columns cols={3}>
 
-## Continue to the rest of the sample
+  <Card title="Quickstart" href="/quickstart" icon="rocket" horizontal="false">
 
-<Columns cols="2">
-  <Card title="Quickstart" href="/quickstart" icon="zap" horizontal="false">
-    See the minimal setup flow.
+    Set up the development environment and run the prototype.
+
   </Card>
 
-  <Card title="Core Concepts" href="/concepts" icon="layers" horizontal="false">
-    Learn how pages, navigation, and components fit together.
+  <Card title="Core Concepts" href="/concepts" icon="book-open" horizontal="false">
+
+    Learn how inventory, orders, reservations, delivery outcomes, and recovery fit together.
+
   </Card>
 
-  <Card title="Components" href="/components" icon="code" horizontal="false">
-    A small gallery of built-in components.
+  <Card title="Architecture" href="/architecture" icon="code" horizontal="false">
+
+    Review the layers, ports, adapters, persistence model, and application boundaries.
+
   </Card>
 
-  <Card title="Authentication" href="/authentication" icon="lock" horizontal="false">
-    Example layout for an auth guide.
-  </Card>
-
-  <Card title="Help Center" href="/help-center" icon="help-circle" horizontal="false">
-    Starter FAQ, guides, and troubleshooting templates.
-  </Card>
 </Columns>
-

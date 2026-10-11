@@ -1,0 +1,112 @@
+---
+title: Inventory Management
+description: Import synthetic inventory codes, create products, manage exact listing mappings, and handle stock expiration in Zeta.
+---
+
+## Inventory management workflow
+
+Learn how to create products, import synthetic inventory, manage exact listing mappings, and handle stock expiration in Zeta.
+
+## Creating products
+
+Products define the synthetic inventory that Zeta can reserve for orders. Each product includes the following fields:
+
+<ParamField body="Id" param-type="identifier" show-location="false">The product identifier.</ParamField>
+
+<ParamField body="BusinessId" param-type="string" show-location="false">The business scope for the product.</ParamField>
+
+<ParamField body="Name" param-type="string" show-location="false">The product name.</ParamField>
+
+<ParamField body="Threshold" param-type="integer" show-location="false">The low-stock threshold. Zeta reports low stock when available units are at or below this value.</ParamField>
+
+<ParamField body="Version" param-type="integer" show-location="false">The optimistic concurrency version used to prevent stale updates.</ParamField>
+
+Zeta supports a maximum of 200 products. Create a product before importing inventory that belongs to it, then use the product when you configure an exact listing mapping.
+
+## Importing inventory
+
+Import synthetic codes through the inventory workflow. The workflow validates the input, lets you review valid rows, and commits the selected rows atomically.
+
+<Callout kind="alert">
+
+Every imported code must start with `DEMO-`. Zeta enforces this prefix to keep the prototype inside its synthetic data boundary.
+
+</Callout>
+
+<Steps>
+
+<Step title="Prepare the import input">
+
+Use either plain line-separated codes or CSV rows containing a code and an optional expiration timestamp.
+
+Plain line-separated input:
+
+```text
+DEMO-ALPHA-7Q4M-2K8P
+DEMO-BETA-3N6R-9T1V
+DEMO-GAMMA-5W2X-8C4D
+```
+
+CSV input:
+
+```csv
+code,expires_at
+DEMO-ALPHA-7Q4M-2K8P,2030-06-30T23:59:59Z
+DEMO-BETA-3N6R-9T1V,2030-07-15T18:00:00+00:00
+```
+
+The input must be no larger than 10 MB and must contain no more than 10,000 data rows. Empty lines are ignored. Zeta trims outer whitespace and reports the transformation during validation.
+
+Use an explicit timezone for every expiration timestamp. Quoted commas and escaped quotes are supported in CSV values.
+
+</Step>
+
+<Step title="Review the preview">
+
+Start the import to generate a preview before changing inventory. Zeta rejects duplicate fingerprints, expired timestamps, and codes that do not meet the synthetic prefix requirement.
+
+Review the valid and rejected rows. Select valid rows individually or in batches of up to 50 rows. A preview that you cancel cannot be committed, and an expired preview also prevents commitment.
+
+</Step>
+
+<Step title="Commit the selected rows">
+
+Commit the selected valid rows after reviewing the preview. Zeta commits the import atomically, so the selected inventory is added as one operation or no selected rows are added.
+
+After a successful commit, the new units belong to the selected product and begin in the `AVAILABLE` stock state unless their subsequent lifecycle changes them.
+
+</Step>
+
+</Steps>
+
+## Listing mappings
+
+Map each product to the exact synthetic listing identity used by an order. A mapping requires all five parts of the identity:
+
+- **Marketplace**
+- **Environment**
+- **Shop ID**
+- **Item ID**
+- **Model ID**
+
+Zeta does not perform automatic, name-based, SKU-based, or fuzzy matching. An order line is eligible only when its complete marketplace, environment, shop, item, and model identity matches a configured mapping.
+
+Zeta captures the mapping version when it creates an allocation during reservation. If you change the mapping after an order has been reserved, the allocation no longer passes the mapping-version check, so Zeta prevents unsafe delivery until the discrepancy is resolved.
+
+## Stock states
+
+Each inventory unit has one `StockState` value:
+
+- **`AVAILABLE`**: The unit can be selected for a new reservation.
+- **`RESERVED`**: The unit is assigned to an order but has not completed delivery.
+- **`QUARANTINED`**: The unit requires review because its delivery or exposure status is uncertain.
+- **`DELIVERED`**: The unit has confirmed delivery or accepted seller evidence.
+- **`INVALID`**: The unit cannot be reserved, commonly because it expired or failed validation.
+
+Zeta invalidates expired `AVAILABLE` units during startup and during its 30-second maintenance cycle. The application rechecks reserved units before a delivery effect begins, so a unit that expires after reservation cannot be delivered as valid inventory.
+
+Delivered, exposed, and quarantined units cannot return to `AVAILABLE`. This prevents a code that may already have been revealed or affected by an uncertain delivery attempt from being reused.
+
+## Fixture data
+
+Use the synthetic fixture at `fixtures/synthetic-codes.csv` when you need representative inventory data for a walkthrough or development scenario. The fixture follows the same `DEMO-` prefix and validation rules as interactive imports.

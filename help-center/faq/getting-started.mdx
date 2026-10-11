@@ -1,20 +1,79 @@
 ---
-title: Where does this documentation come from?
-description: Clarify that this site is a sample starter kit.
+title: FAQ
+description: Answers to common questions about Zeta's synthetic scope, DEMO- prefix, platform support, and production readiness.
 ---
-## Short answer
 
-This is sample content bundled with the starter kit. It is not your product documentation yet.
+## Frequently asked questions
 
-## What to do next
+Find answers about Zeta's purpose, limitations, synthetic data boundary, platform support, and local usage.
 
-- Replace each page with your real information.
+<ExpandableGroup>
 
-- Update navigation labels from dashboard editor or from `documentation.json`.
+<Expandable title="What is Zeta?">
 
-- Remove sections you do not plan to maintain.
+Zeta is a Windows-first Godot .NET desktop prototype for managing synthetic digital inventory and synthetic orders. It simulates order fulfillment workflows without connecting to a live marketplace.
 
-<Callout kind="info" collapsed="false">
-  If you are unsure where a page comes from, look for its `.mdx` file in this repo and edit it directly.
-</Callout>
+</Expandable>
 
+<Expandable title="Why do all codes need the DEMO- prefix?">
+
+The `DEMO-` prefix enforces Zeta's synthetic boundary. Imported codes, products, item and model identifiers, recipients, order IDs, and fixture evidence must use the prefix. This prevents accidental use of real data.
+
+</Expandable>
+
+<Expandable title="Is Zeta production-ready?">
+
+No. Zeta is a prototype, not a production fulfillment system. It excludes live commerce integration, production authentication, real delivery, automatic fulfillment, deployment signing, and portable recovery.
+
+</Expandable>
+
+<Expandable title="Can I use real Shopee data?">
+
+No. Zeta does not make live Shopee calls. The Shopee reference material in the repository is documentation only. The marketplace and delivery adapters are entirely synthetic and run in memory.
+
+</Expandable>
+
+<Expandable title="What platforms are supported?">
+
+Normal execution supports Windows 10 and Windows 11. The `--smoke-test` and `--demo-preview` modes work on other platforms by using isolated temporary workspaces. Zeta rejects normal execution on non-Windows platforms.
+
+</Expandable>
+
+<Expandable title="What happens if the app crashes during delivery?">
+
+Zeta writes a transactional effect marker before starting synthetic delivery. If delivery is interrupted, the order moves to `REVIEW_REQUIRED` and assigned units are quarantined. Zeta never automatically retries uncertain work.
+
+</Expandable>
+
+<Expandable title="Where is data stored?">
+
+Zeta stores data locally at `%LOCALAPPDATA%\Zeta\Synthetic-v1`. The directory contains the SQLite database, ownership lock, DPAPI-protected keys, preferences, and encrypted backups.
+
+</Expandable>
+
+<Expandable title="Can two instances run at the same time?">
+
+No. Zeta uses a single-owner lock for the local store. If another process already owns the store, the second process receives `STORE_ALREADY_OPEN`.
+
+</Expandable>
+
+<Expandable title="What are the prototype limits?">
+
+The prototype enforces these limits:
+
+- 200 products maximum
+- 10 MB maximum import size
+- 10,000 import rows maximum
+- 100 orders maximum per reservation batch
+- 60-second order freshness window
+- 5-second database and provider timeouts
+
+</Expandable>
+
+<Expandable title="How is inventory encrypted?">
+
+Zeta encrypts inventory codes with AES-GCM. Windows DPAPI protects the encryption keys, and plaintext codes are never stored in the database. Zeta uses keyed HMAC fingerprints for duplicate detection without storing plaintext codes.
+
+</Expandable>
+
+</ExpandableGroup>

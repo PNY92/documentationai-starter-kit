@@ -1,0 +1,198 @@
+---
+title: Order Processing
+description: Follow the complete order lifecycle — eligibility checks, atomic reservation, approval, delivery simulation, reveal, and seller attestation.
+---
+
+## Understand the order lifecycle
+
+Follow an order from initial eligibility checks through atomic reservation, approval, delivery simulation, reveal, seller attestation, and final fulfillment. Zeta uses synthetic marketplace data and synthetic delivery effects, so every order, recipient, code, and evidence reference must remain within the `DEMO-` scope.
+
+## Order eligibility
+
+Before reservation or delivery, Zeta verifies that the order is eligible for processing. The order must meet every condition:
+
+- The fixture source is online.
+- The order has no restore-review hold.
+- The source observation is fresh, normally within 60 seconds.
+- The raw source status is `READY_TO_SHIP`.
+- The order is paid.
+- The order is supported.
+- The recipient is synthetic.
+- Every order line has a valid exact mapping.
+- The source version is stable.
+- The order lines are stable.
+
+Zeta treats any failed condition as a visible hold. It does not silently mutate an order or proceed with incomplete source data.
+
+## Reserve inventory atomically
+
+Reservation assigns inventory to every line before the order can enter approval. Zeta uses an all-or-nothing operation, so a shortage does not create a partial reservation.
+
+<Steps>
+<Step title="Read all order lines">
+
+Zeta reads the complete set of order lines and their required quantities.
+
+</Step>
+
+<Step title="Resolve exact mappings">
+
+Zeta resolves each line against an exact marketplace, environment, shop, item, and model mapping. Name, SKU, or fuzzy matching does not select inventory.
+
+</Step>
+
+<Step title="Select every required unit">
+
+Zeta selects all required stock units before changing the state of any unit. This prevents an order from reserving only its first few lines when a later line cannot be supplied.
+
+</Step>
+
+<Step title="Check sufficient stock">
+
+Zeta verifies that enough valid stock exists for the entire order. If any line has insufficient stock, the order becomes blocked and no units are reserved.
+
+</Step>
+
+<Step title="Reserve all units atomically">
+
+Zeta changes every selected unit to `RESERVED` in one atomic operation. A failed transaction does not leave a partial reservation.
+
+</Step>
+
+<Step title="Create allocations">
+
+Zeta creates an allocation for each reserved unit. Each allocation records the order line, stock unit, mapping, mapping version, and line ordinal.
+
+</Step>
+
+<Step title="Move the order to RESERVED">
+
+After the reservation and allocations commit successfully, Zeta moves the order to `RESERVED`.
+
+</Step>
+</Steps>
+
+<Callout kind="info">
+
+A shortage blocks the entire order and reserves zero units. Zeta never leaves an order partially reserved because one line could not be supplied.
+
+</Callout>
+
+## Approve the order
+
+Approval prepares a reserved order for delivery without delivering it. The order must be `RESERVED` or a retryable `FAILED` order.
+
+During approval, Zeta revalidates:
+
+- Source eligibility.
+- The mapping version captured by every allocation.
+- Unit expiration.
+- Unit exposure state.
+
+If validation succeeds, Zeta moves the order to `QUEUED`. Approval does not send codes, call a live marketplace, or deliver anything.
+
+## Simulate delivery
+
+Delivery runs through the synthetic delivery adapter after Zeta records a durable delivery attempt. The simulated result determines whether units are delivered, retried, or moved to review.
+
+<Callout kind="info">
+
+The six supported delivery outcomes are:
+
+- **Confirmed:** All units are confirmed. Confirmed units become `DELIVERED` and receive synthetic channel evidence.
+- **Rejected:** No units are confirmed. A definite rejection without exposure can move the order to `FAILED`.
+- **Pending:** The result is uncertain and requires review.
+- **Partial:** All but one unit are confirmed. The unconfirmed unit requires review.
+- **Unknown:** The result is uncertain and must not be blindly retried.
+- **CrashAfterEffect:** The provider effect occurs, but the application simulates losing the outcome commit. Treat the order as uncertain.
+
+Zeta quarantines unconfirmed units when the outcome is uncertain or when the units were exposed.
+
+</Callout>
+
+An uncertain result does not prove that delivery failed. Recovery preserves the possibility that the synthetic provider effect occurred, which prevents an unsafe resend.
+
+## Reveal assigned codes
+
+Reveal is an investigation and evidence workflow for assigned units that cannot be confirmed through the normal delivery result. Revealing a code permanently changes its handling state.
+
+<Steps>
+<Step title="Create a durable attempt">
+
+Zeta creates a durable delivery or reveal attempt before displaying any assigned code.
+
+</Step>
+
+<Step title="Move the order to delivery or investigation state">
+
+Zeta records that the order has entered the reveal workflow and can require review instead of treating the operation as an ordinary delivery.
+
+</Step>
+
+<Step title="Mark assigned units as exposed">
+
+Zeta permanently marks every assigned unit shown by the reveal operation as exposed.
+
+</Step>
+
+<Step title="Quarantine exposed units">
+
+Zeta moves the exposed units to `QUARANTINED` so they cannot return to available inventory.
+
+</Step>
+
+<Step title="Display or copy synthetic codes">
+
+The user can display or copy the assigned synthetic codes for investigation or seller handling.
+
+</Step>
+
+<Step title="Collect seller evidence before fulfillment">
+
+Zeta requires explicit seller evidence before it can fulfill the order. Reveal alone does not establish fulfillment.
+
+</Step>
+</Steps>
+
+<Callout kind="alert">
+
+Copying a code never fulfills the order. Exposed units remain quarantined until the workflow records acceptable evidence.
+
+</Callout>
+
+## Record seller attestation
+
+Seller attestation records seller-provided evidence for assigned units. It is not provider verification and does not represent buyer receipt.
+
+The attestation must meet all of these conditions:
+
+- The reference starts with `DEMO-`.
+- The evidence covers assigned units only.
+- Each covered unit is exposed and quarantined or already delivered.
+- Covered units move to `DELIVERED`.
+- Every assigned unit has evidence before the order becomes fulfilled.
+
+Zeta fulfills the order only after evidence covers the complete assignment. A partial attestation updates the covered units but leaves the order unfulfilled until the remaining units also have evidence.
+
+## Handle rejection and retry
+
+A definite delivery rejection with no exposure moves the order to `FAILED`. You can reapprove the same allocation and retry delivery after resolving the cause of the rejection.
+
+Uncertain outcomes, including `Pending`, `Unknown`, and `CrashAfterEffect`, cannot be blindly resent. Review the attempt and quarantine state first, because the provider effect may already have occurred.
+
+## Resulting order states
+
+The normal successful path is:
+
+```text
+PENDING → RESERVED → QUEUED → DELIVERING → FULFILLED
+```
+
+A blocked or uncertain path requires review rather than an automatic resend:
+
+```text
+PENDING → BLOCKED
+QUEUED → DELIVERING → REVIEW_REQUIRED
+```
+
+Use the order detail view to inspect allocations, delivery attempts, evidence, and the audit timeline before taking the next action.

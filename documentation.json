@@ -1,5 +1,5 @@
 {
-  "name": "Starter Kit",
+  "name": "Zeta · Synthetic Warehouse",
   "colors": {
     "light": {
       "brand": "#F97316"
@@ -15,7 +15,7 @@
         "icon": "book",
         "groups": [
           {
-            "group": "Start Here",
+            "group": "Guides",
             "icon": "rocket",
             "pages": [
               {
@@ -29,45 +29,77 @@
                 "icon": "zap"
               },
               {
-                "title": "Components",
-                "path": "components",
-                "icon": "code"
+                "title": "Core Concepts",
+                "path": "concepts",
+                "icon": "lightbulb"
               }
             ]
           },
           {
-            "group": "Components",
-            "icon": "layers",
+            "group": "Architecture",
+            "icon": "building-2",
             "pages": [
               {
-                "title": "Images",
-                "path": "components/images",
-                "icon": "image"
+                "title": "Domain Model",
+                "path": "architecture/domain-model",
+                "icon": "database"
               },
               {
-                "title": "Cards",
-                "path": "components/cards",
-                "icon": "square"
+                "title": "Order State Machine",
+                "path": "architecture/order-state-machine",
+                "icon": "git-branch"
               },
               {
-                "title": "Code",
-                "path": "components/code",
+                "title": "Persistence",
+                "path": "architecture/persistence",
+                "icon": "hard-drive"
+              },
+              {
+                "title": "Security",
+                "path": "architecture/security",
+                "icon": "shield"
+              }
+            ]
+          },
+          {
+            "group": "Workflows",
+            "icon": "workflow",
+            "pages": [
+              {
+                "title": "Inventory Management",
+                "path": "workflows/inventory-management",
+                "icon": "package"
+              },
+              {
+                "title": "Order Processing",
+                "path": "workflows/order-processing",
+                "icon": "shopping-cart"
+              },
+              {
+                "title": "Exceptions & Recovery",
+                "path": "workflows/exceptions-recovery",
+                "icon": "alert-triangle"
+              },
+              {
+                "title": "Warehouse View",
+                "path": "workflows/warehouse-view",
+                "icon": "box"
+              }
+            ]
+          },
+          {
+            "group": "Reference",
+            "icon": "book-open",
+            "pages": [
+              {
+                "title": "Configuration",
+                "path": "reference/configuration",
+                "icon": "settings"
+              },
+              {
+                "title": "Application API",
+                "path": "reference/application-api",
                 "icon": "code"
-              },
-              {
-                "title": "Callouts",
-                "path": "components/callouts",
-                "icon": "message-square"
-              },
-              {
-                "title": "Steps",
-                "path": "components/steps",
-                "icon": "list-ordered"
-              },
-              {
-                "title": "Tabs",
-                "path": "components/tabs",
-                "icon": "columns"
               }
             ]
           }
@@ -82,14 +114,14 @@
             "icon": "file-text",
             "pages": [
               {
-                "title": "Authentication",
+                "title": "Access & Security",
                 "path": "authentication",
                 "icon": "lock"
               }
             ]
           },
           {
-            "group": "Sample Endpoints",
+            "group": "Internal API",
             "openapi": "openapi.yaml"
           }
         ]
@@ -99,17 +131,12 @@
         "icon": "help-circle",
         "pages": [
           {
-            "title": "Help Center",
-            "path": "help-center",
-            "icon": "home"
-          },
-          {
             "group": "FAQs",
             "icon": "help-circle",
             "expandable": false,
             "pages": [
               {
-                "title": "Documentation Source",
+                "title": "FAQ",
                 "path": "help-center/faq/getting-started"
               }
             ]
@@ -120,7 +147,7 @@
             "expandable": false,
             "pages": [
               {
-                "title": "Page Missing in Sidebar",
+                "title": "Troubleshooting",
                 "path": "help-center/troubleshooting/install-error"
               }
             ]
@@ -131,7 +158,7 @@
             "expandable": false,
             "pages": [
               {
-                "title": "Create Your First Page",
+                "title": "Developer Setup",
                 "path": "help-center/guides/setup-project"
               }
             ]

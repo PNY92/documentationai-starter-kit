@@ -1,0 +1,101 @@
+---
+title: Order State Machine
+description: Trace every allowed order state transition in Zeta, from pending through reservation, delivery, recovery, and terminal closure.
+---
+
+## Overview
+
+The order state machine defines the complete set of `OrderState` values and the transitions Zeta permits between them. The transition rules are defined in `src/Zeta.Core/Transitions.cs`.
+
+## States
+
+- **`PENDING`**: The order is available for eligibility checks and reservation.
+- **`BLOCKED`**: A hold prevents the order from progressing until its blocking condition is resolved.
+- **`RESERVED`**: All required inventory units are allocated to the order.
+- **`QUEUED`**: The order passed approval and is ready for a delivery attempt.
+- **`DELIVERING`**: A delivery attempt has started and its outcome is being determined.
+- **`FAILED`**: Delivery was definitively rejected without an uncertain or exposed effect. The order can be retried or returned to an earlier operational state.
+- **`REVIEW_REQUIRED`**: The delivery outcome is uncertain, interrupted, or requires explicit investigation before the order can close.
+- **`FULFILLED`**: Delivery is complete and the order has the required evidence.
+- **`CANCELLED`**: The order was cancelled within the application workflow.
+- **`CLOSED_EXTERNAL`**: The order was reviewed and closed as handled outside the application before any allocation existed.
+- **`CLOSED_EXCEPTION`**: An investigated exception was explicitly closed without fulfilling the order.
+
+## Allowed transitions
+
+The state machine permits only the following transitions:
+
+```text
+PENDING
+  ├── BLOCKED
+  ├── RESERVED
+  ├── CANCELLED
+  └── CLOSED_EXTERNAL
+
+BLOCKED
+  ├── PENDING
+  ├── CANCELLED
+  └── CLOSED_EXTERNAL
+
+RESERVED
+  ├── QUEUED
+  ├── PENDING
+  ├── BLOCKED
+  └── CANCELLED
+
+QUEUED
+  ├── DELIVERING
+  ├── FAILED
+  ├── BLOCKED
+  └── CANCELLED
+
+DELIVERING
+  ├── FULFILLED
+  ├── FAILED
+  └── REVIEW_REQUIRED
+
+FAILED
+  ├── QUEUED
+  ├── PENDING
+  ├── BLOCKED
+  └── CANCELLED
+
+REVIEW_REQUIRED
+  ├── FULFILLED
+  ├── QUEUED
+  └── CLOSED_EXCEPTION
+```
+
+A transition is directional. For example, `RESERVED` can return to `PENDING`, but `PENDING` does not transition directly to `QUEUED`.
+
+<Callout kind="alert">
+
+An illegal transition throws `FORBIDDEN_TRANSITION`. Callers must select an operation that is valid for the order's current state.
+
+</Callout>
+
+## Terminal states
+
+The following states have no outgoing transitions:
+
+- **`FULFILLED`**
+- **`CANCELLED`**
+- **`CLOSED_EXTERNAL`**
+- **`CLOSED_EXCEPTION`**
+
+After an order enters a terminal state, the state machine does not permit it to return to an operational or review state.
+
+## Transition context
+
+Common transitions correspond to these business events:
+
+- **`PENDING` → `RESERVED`**: Reservation successfully selects and allocates every required inventory unit.
+- **`RESERVED` → `QUEUED`**: Approval revalidates the order, allocations, mapping versions, and inventory, then queues delivery.
+- **`QUEUED` → `DELIVERING`**: A delivery attempt starts and Zeta records the durable attempt marker.
+- **`DELIVERING` → `FULFILLED`**: The synthetic delivery outcome is confirmed and the required delivery evidence is recorded.
+- **`DELIVERING` → `FAILED`**: The delivery provider returns a definite rejection without an uncertain or exposed effect.
+- **`DELIVERING` → `REVIEW_REQUIRED`**: The result is uncertain, interrupted, or affected by a crash after the provider effect may have occurred.
+- **`REVIEW_REQUIRED` → `FULFILLED`**: Seller attestation covers every assigned unit and completes the fulfillment evidence.
+- **`REVIEW_REQUIRED` → `CLOSED_EXCEPTION`**: An operator explicitly closes the investigated exception without fulfilling the order.
+
+The state machine does not automatically retry uncertain delivery. Recovery moves unfinished attempts to `REVIEW_REQUIRED`, where an explicit review determines whether the order is fulfilled, requeued, or closed as an exception.

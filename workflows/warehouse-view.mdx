@@ -1,0 +1,66 @@
+---
+title: Warehouse View
+description: Navigate Zeta's 3D warehouse visualization — explore stations, shelves, and order packages with mouse and keyboard controls.
+---
+
+## Use the warehouse view
+
+Learn how to use Zeta's 3D warehouse view, understand the objects it displays, and interact with stations, product shelves, and order packages. The warehouse view reflects committed application state so you can inspect operations without changing them through navigation or camera movement.
+
+## What the warehouse shows
+
+The warehouse view presents the current committed state as a visual layout of warehouse activity:
+
+- **Receiving station:** Entry point for receiving-related work.
+- **Packing station:** Entry point for packing-related work.
+- **Review station:** Entry point for orders and work that require review.
+- **Dispatch station:** Entry point for dispatch-related work.
+- **Product shelves:** Products and their inventory views.
+- **Order packages:** Orders grouped by their current processing stage.
+- **Overflow counts:** Counts for shelves or orders that exceed the visible scene limits.
+
+Select an object to open the related conventional screen or detail view. The warehouse does not replace the management screens, which provide the controls for changing business state.
+
+## Interaction controls
+
+Use the following controls to navigate and inspect the warehouse:
+
+| Control | Action |
+| --- | --- |
+| Left click | Select an object. |
+| Right-click or middle-button drag | Pan the warehouse view. |
+| Mouse wheel | Zoom in or out. |
+| `F2` | Toggle between management and warehouse views. |
+| Click a shelf | Open the product view for that shelf. |
+| Click a package | Open the order details for that package. |
+| Click a station | Navigate to the station's conventional screen. |
+
+Selection opens information or navigation targets. It does not reserve inventory, approve orders, deliver packages, or otherwise modify business state.
+
+## Display limits
+
+The scene displays up to **50 product shelves** and **100 orders** at once. Orders are limited to **25 visible packages per processing stage**.
+
+When the underlying committed state contains more objects than the scene can display, the warehouse shows an overflow count. Use the conventional product and order screens to inspect the complete set of records.
+
+## What the warehouse does not affect
+
+<Callout kind="alert">
+
+The warehouse is a visualization of committed state, not a simulation system. Movement, camera position, animation, warehouse capacity, travel, and object selection do not alter business state.
+
+</Callout>
+
+Navigating the scene does not simulate workers, transportation, capacity constraints, or order progression. Use the management screens and their actions when you need to change inventory or order state.
+
+## Toggling views
+
+Press `F2` to switch between the management view and the warehouse view. Zeta remembers the selected view in application preferences.
+
+To start Zeta directly in the warehouse view, pass the `--view=Warehouse` command-line option:
+
+```text
+Zeta.exe --view=Warehouse
+```
+
+The option selects the initial view only. It does not change warehouse data or perform any warehouse operation.

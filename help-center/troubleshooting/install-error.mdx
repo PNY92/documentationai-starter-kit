@@ -1,26 +1,194 @@
 ---
-title: Page Missing in Sidebar
-description: Fix a page that does not appear in navigation.
+title: Troubleshooting
+description: Resolve common Zeta issues — SDK version mismatches, Godot import problems, SQLite version conflicts, store locks, and key file errors.
 ---
-## Symptoms
 
-- A new page file exists but does not show up in the sidebar.
+## Resolve common setup and runtime issues
 
-- Clicking a nav item shows a 404.
+Find solutions to the most common Zeta setup and runtime issues, including SDK mismatches, Godot import failures, SQLite conflicts, store locks, missing keys, smoke-test failures, and test errors.
 
-## Fix
+<Callout kind="info">
 
-<Steps>
-  <Step title="Confirm the file name" icon="file-text" title-type="p">
-    Ensure the file exists.
-  </Step>
+Zeta targets Windows with Godot 4.7.2 .NET and .NET SDK 10.0.401. Run commands from the repository root unless a troubleshooting step says otherwise.
 
-  <Step title="Update navigation" icon="settings" title-type="p">
-    Add or fix the matching `path` in `documentation.json` or from navigation menu.
-  </Step>
+</Callout>
 
-  <Step title="Publish" icon="refresh-cw" title-type="p">
-    Publish so changes take effect.
-  </Step>
-</Steps>
+<ExpandableGroup>
 
+<Expandable title="Wrong .NET SDK version">
+
+Zeta pins .NET SDK `10.0.401` in `global.json` and disables roll-forward. If `dotnet --version` reports another version, install SDK `10.0.401` and run the command again.
+
+```powershell
+dotnet --version
+```
+
+The command must report:
+
+```text
+10.0.401
+```
+
+The build fails with a version mismatch error when the exact SDK is unavailable. Do not work around the error by using a later SDK, because `rollForward: disable` prevents Zeta from selecting one.
+
+</Expandable>
+
+<Expandable title="Godot project won't import">
+
+Use Godot 4.7.2 .NET, not the standard non-.NET Godot build. Zeta contains C# projects, so the .NET-enabled editor is required to import and run the project.
+
+Confirm that the .NET SDK is installed and accessible through the PATH available to the Godot editor. If the SDK works in a terminal but Godot cannot find it, start Godot from an environment where the SDK path is available, then import the project again.
+
+Open the project from:
+
+```text
+src/Zeta.Godot
+```
+
+A successful import uses the C# project files and loads `Main.tscn` as the application scene. The standard Godot build cannot load this project correctly.
+
+</Expandable>
+
+<Expandable title="SQLite native version mismatch">
+
+Zeta bundles its native SQLite dependency through `SQLitePCLRaw.bundle_e_sqlite3`. If the native SQLite version is incompatible, Zeta refuses to start instead of opening the store with an unsupported library.
+
+Remove conflicting SQLite libraries from the runtime environment and ensure the bundled dependency is restored and copied with the application. Run the validation workflow to exercise the native SQLite version checks:
+
+```powershell
+.\scripts\Validate.ps1
+```
+
+If the validation still reports a native version mismatch, check the build output for an unexpected `e_sqlite3` library or an incomplete restore. Rebuild after correcting the dependency output.
+
+</Expandable>
+
+<Expandable title="Store already open">
+
+Zeta allows only one process to own a store at a time. If the application reports `STORE_ALREADY_OPEN`, another Zeta process is using the same store directory.
+
+Close the other Zeta window or terminate the process that owns the store, then start Zeta again. Check for a background or previously launched instance before deleting or modifying files in the store directory.
+
+The default store is:
+
+```text
+%LOCALAPPDATA%\Zeta\Synthetic-v1
+```
+
+</Expandable>
+
+<Expandable title="Key file missing">
+
+Zeta refuses to create replacement keys when an existing database has no `owner.keys` file. A replacement key would make the encrypted inventory data unreadable.
+
+If the original store is required, restore it from an encrypted backup using the original DPAPI-protected keys and the same Windows user account that created them. The backup does not contain the keys, so a different Windows user cannot recover the encrypted data.
+
+If the original keys cannot be recovered, start with a fresh store. Do not delete the existing database and key-related files until you have confirmed that the data is no longer needed.
+
+<Callout kind="alert">
+
+A new store does not recover the encrypted data from the damaged store. Preserve the original files when investigating a missing-key problem.
+
+</Callout>
+
+</Expandable>
+
+<Expandable title="UNC path rejected">
+
+Zeta refuses UNC paths and cloud-synced directories, including OneDrive and Dropbox locations. These locations can introduce synchronization conflicts and unreliable file locking for the SQLite store.
+
+Use a local, unsynchronized Windows path. The default path is local:
+
+```text
+%LOCALAPPDATA%\Zeta\Synthetic-v1
+```
+
+If you launch Zeta from an exported or copied application directory, keep the store on local storage rather than placing it on a network share or cloud-synced folder.
+
+</Expandable>
+
+<Expandable title="Newer database schema refused">
+
+Zeta refuses to open a database whose schema is newer than the schema supported by the running application. This prevents an older application version from silently changing a database created or migrated by a newer version.
+
+Use the version of Zeta that created or last migrated the database. If you must move the data to another installation, use the supported encrypted backup and restore workflow with a compatible Zeta version.
+
+Do not replace the database with an empty file to bypass the error. Zeta intentionally refuses to create a replacement store when an existing store cannot be safely opened.
+
+</Expandable>
+
+<Expandable title="Smoke test fails">
+
+The isolated smoke test must print `ZETA_SMOKE_OK` before it exits successfully. If that text does not appear, check the pinned .NET SDK, Godot installation, and build output first.
+
+Run the smoke test with the `--headless` flag:
+
+```powershell
+godot --headless --path src/Zeta.Godot -- --smoke-test
+```
+
+The smoke test creates an isolated temporary workspace, runs a real end-to-end flow, creates an encrypted snapshot, prints the success marker, and exits. It does not use your normal local store.
+
+For a full diagnostic workflow, run:
+
+```powershell
+.\scripts\Validate.ps1
+```
+
+The validation script performs locked restore, solution build, xUnit tests, Godot headless import, and the headless smoke test. Fix the first failing stage before investigating later stages.
+
+</Expandable>
+
+<Expandable title="Build fails with lock file errors">
+
+Restore dependencies with locked mode so NuGet uses the dependency versions recorded by the repository:
+
+```powershell
+dotnet restore Zeta.slnx --locked-mode
+```
+
+If the lock files are outdated, review the dependency changes before updating them. Check which package versions changed and confirm that the change is intentional before committing new lock files.
+
+Do not bypass locked mode without reviewing the dependency diff. An unlocked restore can hide unintended dependency changes and produce a build that differs from the repository's validated dependency set.
+
+After a successful restore, build without restoring again:
+
+```powershell
+dotnet build Zeta.slnx --no-restore -m:1
+```
+
+</Expandable>
+
+<Expandable title="Tests fail with database errors">
+
+Zeta tests use real temporary SQLite databases and ephemeral encryption keys. They are integration and invariant tests, so failures can involve file locks, SQLite initialization, schema setup, or the pinned SDK rather than mocked dependencies.
+
+First confirm the SDK version:
+
+```powershell
+dotnet --version
+```
+
+The output must be `10.0.401`. Ensure that no other process is locking the temporary database files, then restore and build successfully before running tests.
+
+Run the tests without rebuilding or restoring after the build succeeds:
+
+```powershell
+dotnet test tests/Zeta.Tests/Zeta.Tests.csproj --no-build --no-restore
+```
+
+If the tests still report database errors, close other test runners and Zeta instances, then rerun the command. Running with `--no-build --no-restore` ensures the test process uses the binaries and dependencies from the successful build.
+
+</Expandable>
+
+</ExpandableGroup>
+
+## Validate the complete environment
+
+When several issues occur together, run the repository validation script instead of diagnosing each stage independently:
+
+```powershell
+.\scripts\Validate.ps1
+```
+
+The script checks locked dependency restore, the full solution build, xUnit tests, Godot headless import, and the headless smoke test. The first failing stage identifies the part of the environment that needs attention.

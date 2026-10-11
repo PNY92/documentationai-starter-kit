@@ -1,57 +1,91 @@
 ---
-title: Authentication (Sample)
-description: Sample guidance for authentication and OpenAPI usage.
+title: Access & Security
+description: Understand Zeta's single-owner store model, DPAPI key protection, lock screen, and why there is no traditional authentication.
 ---
 
-## Overview
+## Access model overview
 
-This is sample content. Replace tokens, URLs, headers, and flows with your real authentication requirements.
+Zeta uses local, single-owner storage instead of traditional authentication. This page explains how the application protects its store, keys, and sensitive UI state, and where those protections stop.
 
 <Callout kind="info">
 
-This site ships with placeholder content for authentication. Update this page and `openapi.yaml` to match your real API before sharing with users.
+Zeta is a Windows desktop prototype. It has no network service, production identity system, or deployment-signing workflow.
 
 </Callout>
 
-This API uses OpenAPI to describe endpoints, parameters, and responses. The reference is generated from `openapi.yaml`, so keep that file up to date as your API evolves.
+## No traditional authentication
 
-## Authentication
+Zeta runs as a local Windows desktop application. It does not provide:
 
-Use a bearer token in the `Authorization` header for authenticated requests. Replace the base URL and token with values for your own API.
+- A login system
+- User accounts
+- JWT tokens
+- API keys
+- OAuth flows
+- Production authentication
+- Deployment signing
 
-```bash
-curl https://api.example.com/v1/example \
-  -H "Authorization: Bearer YOUR_TOKEN"
+Access to the application depends on the local Windows environment, the protected store keys, and the single-owner process lock. These controls do not establish user identity for a production service.
+
+## Single-owner local store
+
+Zeta opens an ownership file named `.owner` with exclusive sharing in the local store directory:
+
+```text
+%LOCALAPPDATA%\Zeta\Synthetic-v1
 ```
 
-<ParamField header="Authorization" param-type="string" required="true">
-  `Bearer YOUR_TOKEN`
-</ParamField>
+The exclusive file handle prevents a second Zeta process from opening the same store concurrently. If another process already owns the store, the second process receives:
 
-## Keep OpenAPI in sync
+```text
+STORE_ALREADY_OPEN
+```
 
-Define your authentication and base settings in `openapi.yaml` so the API Reference stays accurate and consistent.
+This ownership check prevents two application instances from modifying the same SQLite database at the same time. It is a process-level storage safeguard, not a user authentication mechanism.
 
-At a minimum, you should:
+## DPAPI key protection
 
-- Define one or more security schemes that describe how clients authenticate (for example, bearer token, API key in a header, or other scheme).
-- Reference those security schemes on operations that require authentication so they are clearly marked as secured.
-- Set the correct base URL and any required global headers (for example, versioning or tenant headers) so example requests are copy-pasteable.
+During normal Windows execution, Zeta generates 64 bytes of installation key material. The application divides the material into two keys:
 
-When your real authentication flow changes (for example, new header names, token formats, or additional requirements), update `openapi.yaml`. The generated API Reference will then reflect your current auth model without needing to edit each endpoint page by hand.
+- A 32-byte AES key for encrypting stored inventory values.
+- A 32-byte HMAC key for keyed fingerprints and duplicate detection.
 
-## Using the API reference
+Zeta protects the combined key material with Windows DPAPI using the `CurrentUser` scope. The wrapped material is stored in `owner.keys` within the local store directory. Because DPAPI binds the protected material to the Windows user context, the original Windows user is required to unwrap the keys.
 
-Use the API Reference to explore endpoints, required parameters, and example responses. When you change authentication headers or base URLs, update `openapi.yaml` so the generated reference matches what your clients should use.
+<Callout kind="alert">
 
-## Common mistakes
+If Zeta finds an existing database without its key file, it refuses to generate replacement keys. Replacement keys would make previously encrypted inventory data unreadable, so the application does not silently replace missing key material.
 
-<Expandable title="Why am I getting a 401?" default-open="false">
+</Callout>
 
-Verify that:
+The key file is separate from the SQLite database. Encrypted backups also exclude the keys, which means a backup is recoverable only with the original DPAPI-protected key material and Windows user context.
 
-- The token is valid and not expired.
-- The token is sent in the `Authorization` header.
-- The header value includes the `Bearer` prefix and a space before the token.
+## Lock screen behavior
 
-</Expandable>
+Locking the application protects the active session while the process remains open. Zeta locking:
+
+- Pauses new work.
+- Clears sensitive windows.
+- Clears application-owned clipboard contents.
+- Prevents access to service operations.
+
+Unlocking is a demo confirmation in the prototype. It does not validate a password, establish production identity, perform Windows reauthentication, or replace a production access-control system.
+
+<Callout kind="tip">
+
+Treat the lock screen as an in-session privacy control. It limits access to the running application but does not provide production reauthentication.
+
+</Callout>
+
+## Recovery limitations
+
+Zeta's access and key model has explicit recovery boundaries:
+
+- Keys are tied to the Windows user account through DPAPI.
+- The store is not portable between Windows users.
+- A lost device or lost Windows user context has no portable recovery path.
+- The application has no production authentication.
+- The application has no deployment signing.
+- A missing key file cannot be repaired by generating a replacement key.
+
+These limitations are intentional prototype boundaries. Zeta does not claim to provide identity recovery, device migration, production account recovery, or signed production deployment.

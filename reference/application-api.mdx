@@ -1,0 +1,173 @@
+---
+title: Application API
+description: Reference every CommerceService method — queries, commands, delivery, evidence, closure, and recovery operations.
+---
+
+## Application API
+
+`CommerceService` exposes Zeta's complete application API: queries and business operations for products, inventory, orders, reservations, delivery, evidence, closure, and recovery. Zeta has no HTTP or REST layer, so application code calls these public C# methods directly.
+
+<Callout kind="info">
+
+Zeta has no HTTP API, controllers, or REST endpoints. The application API is the public method surface of `CommerceService` in `src/Zeta.Core/CommerceService.cs`.
+
+The service uses synthetic, in-memory marketplace and delivery adapters. It does not call a live marketplace or delivery provider.
+
+</Callout>
+
+## CommandContext
+
+Every mutating command includes a `CommandContext`. The context identifies the command, supplies the expected aggregate version for optimistic concurrency, and scopes the operation to a business.
+
+```csharp
+public sealed record CommandContext(
+    string Key,
+    int ExpectedVersion = 0,
+    string BusinessId = Demo.Business);
+```
+
+<ParamField body="Key" param-type="string" required="true" show-location="false">Unique command key used for idempotency.</ParamField>
+
+<ParamField body="ExpectedVersion" param-type="int" required="false" show-location="false">Expected version for optimistic concurrency checks. The default is `0`.</ParamField>
+
+<ParamField body="BusinessId" param-type="string" required="false" show-location="false">Business scope for the command. The default is `Demo.Business`, which resolves to `demo-business`.</ParamField>
+
+The service persists the command key, payload fingerprint, and serialized result JSON. Replaying a command with the same key and payload returns the original result. Reusing a key with a different payload returns `IDEMPOTENCY_CONFLICT`.
+
+## Queries
+
+Queries read committed projections and do not perform business mutations.
+
+### `CountsAsync()`
+
+Returns product and order summary counts used by the management UI.
+
+### `OrdersAsync(search, state, page)`
+
+Returns a paginated order list. The query supports text search and filtering by internal order state.
+
+### `DetailAsync(id)`
+
+Returns full order detail for the specified order, including allocations, delivery evidence, and audit history.
+
+### `BatchesAsync()`
+
+Returns the durable reservation batches known to the service, including their per-order targets and results.
+
+## Product and mapping commands
+
+### `CreateProductAsync(...)`
+
+Creates a synthetic inventory product. Products include a name and low-stock threshold and are subject to the prototype's product limit.
+
+### `MapAsync(...)`
+
+Creates or updates an exact mapping from a synthetic marketplace item and model to a product. Mapping resolution uses the marketplace, environment, shop, item ID, and model ID. It does not perform name, SKU, or fuzzy matching.
+
+## Inventory commands
+
+### `PreviewAsync(...)`
+
+Parses and validates a synthetic inventory import before commitment. Preview processing handles line-separated codes and CSV rows with optional expiration timestamps.
+
+### `CancelPreview(...)`
+
+Cancels an active inventory preview. A canceled preview cannot be committed.
+
+### `CommitImportAsync(...)`
+
+Commits selected rows from a valid preview atomically. Duplicate fingerprints, invalid rows, and expired rows are not committed.
+
+### `ExpireAvailableAsync()`
+
+Invalidates available stock whose expiration time has passed. Reserved, exposed, quarantined, delivered, and already invalid units are not returned to available stock by this operation.
+
+## Order source commands
+
+### `RefreshAsync(...)`
+
+Refreshes an order's observation from the synthetic marketplace fixture. Reservation and delivery eligibility depend on a fresh, stable fixture observation.
+
+## Reservation and approval commands
+
+### `ReserveAsync(...)`
+
+Reserves every required line for an eligible order atomically. The service resolves exact mappings and selects all required units before changing any unit. If stock is insufficient for any line, the order is blocked and no units are reserved.
+
+### `ApproveAsync(...)`
+
+Approves a reserved or retryable failed order for delivery. The service rechecks source eligibility, allocation mapping versions, unit expiration, and exposure before moving the order to `QUEUED`. Approval does not deliver inventory.
+
+### `ReleaseAsync(...)`
+
+Releases an unexposed reservation. Valid units return to `AVAILABLE`; expired units become `INVALID`. Exposed or uncertain work remains subject to review.
+
+### `CreateReservationBatchAsync(...)`
+
+Creates a durable reservation batch from explicit orders. The batch stores order IDs and expected versions so processing can continue after a restart.
+
+### `ProcessReservationBatchAsync(...)`
+
+Processes reservation batch targets independently and stores a result for each target. Batch processing reserves inventory only. It does not approve or deliver orders and does not repeat targets whose results are already committed.
+
+## Delivery and evidence commands
+
+### `DeliverAsync(...)`
+
+Simulates delivery using a selected synthetic outcome. Supported outcomes include `Confirmed`, `Rejected`, `Pending`, `Partial`, `Unknown`, and `CrashAfterEffect`.
+
+Confirmed units become `DELIVERED` and receive synthetic channel evidence. Uncertain or exposed units are quarantined and require review rather than automatic resend.
+
+### `RevealAsync(...)`
+
+Reveals the synthetic codes assigned to an order. Revealing codes permanently marks the assigned units as exposed, quarantines them, and records a durable delivery attempt. Revealing a code does not fulfill the order.
+
+### `AttestAsync(...)`
+
+Records seller attestation for exposed or delivered assigned units. The attestation reference must use the `DEMO-` prefix. The order becomes fulfilled only after every assigned unit has qualifying evidence.
+
+## Closure commands
+
+### `CloseExceptionAsync(...)`
+
+Closes an order that has reached `REVIEW_REQUIRED` after reviewed handling. This records an exception closure without automatically retrying uncertain delivery.
+
+### `CloseExternalAsync(...)`
+
+Records that an order was handled externally. The operation is available only before the order has any allocation, so it does not create application delivery or evidence.
+
+## Recovery and lifecycle commands
+
+### `RecoverAsync()`
+
+Recovers interrupted delivery attempts. The service locates unfinished attempts, quarantines non-delivered assigned units, marks the attempts interrupted or unknown, and moves affected orders to `REVIEW_REQUIRED`.
+
+Recovery never automatically resends uncertain work.
+
+### `QuiesceAsync()`
+
+Performs controlled service shutdown. The operation quiesces new work and allows the application to close its active service and persistence operations cleanly.
+
+### `SetLocked(...)`
+
+Locks or unlocks the service. Locking pauses new work, prevents service access, and supports clearing sensitive application-owned state. Unlocking is a demo confirmation and does not provide production reauthentication.
+
+## Change hints
+
+The service emits `ChangeHint` values through a queue after committed state changes. `Main._Process()` consumes those hints and rerenders the affected UI projections.
+
+This projection-driven pattern keeps the interface separate from command execution. Screens read committed counts, order summaries, order details, and audit history instead of maintaining independent business state.
+
+## Synthetic adapter interfaces
+
+`CommerceService` reaches external-effect boundaries through two interfaces. The current implementations are entirely in memory and synthetic.
+
+### `IMarketplaceAdapter.FetchAsync(...)`
+
+Fetches an order observation from the synthetic marketplace source. The observation supplies source status, payment and support eligibility, recipient data, source version, and order lines used by reservation validation.
+
+### `IDeliveryAdapter.SendAsync(...)`
+
+Sends a synthetic delivery request and returns a selected simulated outcome. The adapter supports confirmed, rejected, pending, partial, unknown, and crash-after-effect results.
+
+Neither adapter connects to a live marketplace, delivery provider, HTTP service, or network endpoint.

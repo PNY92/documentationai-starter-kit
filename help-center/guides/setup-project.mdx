@@ -1,20 +1,177 @@
 ---
-title: Create Your First Doc Page
-description: A short guide to adding a new page to this starter kit.
+title: Developer Setup
+description: Set up the Zeta development environment — install prerequisites, restore dependencies, build, test, and run the Godot application.
 ---
-## Overview
 
-Use this guide as a sample for your real setup instructions.
+## Set up the development environment
 
-## Steps
+Set up a complete Zeta development environment from a clean clone, validate the solution, and run the Godot application locally.
+
+## Prerequisites
+
+<Callout kind="info">
+
+Install the following tools before cloning and building Zeta:
+
+- .NET SDK `10.0.401`
+- Godot `4.7.2 .NET`
+- Git
+- Windows 10 or Windows 11
+
+The persistent application targets Windows. On other platforms, use the isolated `--smoke-test` or `--demo-preview` modes instead of normal application execution.
+
+</Callout>
+
+## Setup flow
 
 <Steps>
-  <Step title="Create a new file" icon="file-plus" title-type="p">
-    Add a page using + and start with a title and short description.
-  </Step>
+<Step title="Clone the repository">
 
-  <Step title="Write the first section" icon="edit" title-type="p">
-    Add a simple header and a few sentences users can scan quickly.
-  </Step>
+Clone the repository and change to its directory:
+
+```bash
+git clone https://github.com/PNY92/zeta.git
+cd zeta
+```
+
+The repository root contains `Zeta.slnx`, the source projects, tests, scripts, and documentation.
+
+</Step>
+
+<Step title="Verify the .NET SDK">
+
+Check the installed SDK:
+
+```bash
+dotnet --version
+```
+
+The command must print:
+
+```text
+10.0.401
+```
+
+Zeta pins this SDK version in `global.json` with roll-forward disabled. Install the pinned version before continuing if the command reports a different version.
+
+</Step>
+
+<Step title="Restore dependencies">
+
+Restore the locked NuGet dependency graph:
+
+```bash
+dotnet restore Zeta.slnx --locked-mode
+```
+
+A successful restore completes without changing the lock files. If restore fails because the lock files are out of date, do not bypass locked mode. Review the dependency change before updating them.
+
+</Step>
+
+<Step title="Build the solution">
+
+Build every project in the solution without restoring again:
+
+```bash
+dotnet build Zeta.slnx --no-restore -m:1
+```
+
+The build compiles the domain, infrastructure, Godot application, and test projects. A successful build ends with a succeeded build summary and no errors.
+
+</Step>
+
+<Step title="Run the tests">
+
+Run the integration and integrity tests against temporary SQLite stores:
+
+```bash
+dotnet test tests/Zeta.Tests/Zeta.Tests.csproj --no-build --no-restore
+```
+
+The test project exercises persistence, encryption, concurrency, idempotency, recovery, state transitions, and synthetic delivery behavior. A successful run reports that all tests passed.
+
+</Step>
+
+<Step title="Open the project in Godot">
+
+Open Godot 4.7.2 .NET and import:
+
+```text
+src/Zeta.Godot/project.godot
+```
+
+Run the project from the Godot editor. The main scene is `Main.tscn`, and the application opens in the synthetic warehouse workspace.
+
+</Step>
+
+<Step title="Run the isolated smoke test">
+
+Run the end-to-end smoke test from the repository root:
+
+```bash
+godot --headless --path src/Zeta.Godot -- --smoke-test
+```
+
+The smoke test uses an isolated temporary workspace, exercises a real application flow, creates an encrypted snapshot, and exits after printing:
+
+```text
+ZETA_SMOKE_OK
+```
+
+</Step>
 </Steps>
 
+## Validate the complete environment
+
+The validation script runs the standard checks in one command:
+
+```powershell
+.\scripts\Validate.ps1
+```
+
+<Callout kind="tip">
+
+Use `scripts/Validate.ps1` before opening a pull request. The script runs locked dependency restore, a full solution build, xUnit tests, Godot headless import, and the Godot headless smoke test.
+
+</Callout>
+
+## Export a Windows build
+
+Use the export script to create the Windows prototype package:
+
+```powershell
+.\scripts\Export-Windows.ps1
+```
+
+The script imports the Godot project, performs a Windows release export, verifies that `Zeta.Godot.dll` and `e_sqlite3.dll` are present, copies license and notice files, and creates `RUN-PROTOTYPE.txt`.
+
+The export is unsigned and must remain distributed as a complete folder.
+
+## Project structure
+
+The solution is organized into four primary projects:
+
+- **`Zeta.Core`**: Domain entities, business rules, state transitions, service interfaces, and application workflows.
+- **`Zeta.Infrastructure`**: EF Core, SQLite persistence, encryption, migrations, and synthetic adapters.
+- **`Zeta.Godot`**: Godot scenes, application startup, user interface, and warehouse visualization.
+- **`Zeta.Tests`**: xUnit integration and integrity tests using real temporary SQLite databases.
+
+`Zeta.slnx` is the repository-wide solution file used for restore, build, and solution-level development commands.
+
+## Next steps
+
+<Columns cols={3}>
+
+<Card title="Core concepts" href="/concepts" icon="book-open" cta="Read concepts">
+Understand Zeta's synthetic commerce model, state transitions, persistence boundaries, and recovery behavior.
+</Card>
+
+<Card title="Configuration" href="/reference/configuration" icon="settings" cta="Configure Zeta">
+Review SDK, Godot, runtime, storage, and prototype limit settings.
+</Card>
+
+<Card title="Application API" href="/reference/application-api" icon="code" cta="Explore the API">
+Review the public `CommerceService` queries and commands used by the application.
+</Card>
+
+</Columns>

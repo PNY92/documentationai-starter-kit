@@ -1,0 +1,140 @@
+---
+title: "Configuration"
+description: "Reference Zeta's .NET SDK, Godot project, export, preferences, command-line options, and operational limits."
+---
+
+## Configuration
+
+Find all Zeta configuration options across the .NET build, Godot project, Windows export, runtime preferences, command-line interface, and operational limits.
+
+## .NET SDK
+
+Zeta uses .NET SDK `10.0.401` and targets `net10.0`.
+
+### SDK selection
+
+`global.json` pins the SDK and prevents automatic roll-forward to another installed SDK version.
+
+```json
+{
+  "sdk": {
+    "version": "10.0.401",
+    "rollForward": "disable"
+  }
+}
+```
+
+<ParamField body="sdk.version" param-type="string" show-location="false" required="true">The required .NET SDK version: `10.0.401`.</ParamField>
+
+<ParamField body="sdk.rollForward" param-type="string" show-location="false" required="true">Disables SDK roll-forward. The build fails if SDK `10.0.401` is not available.</ParamField>
+
+### Shared build properties
+
+`Directory.Build.props` applies these settings to the projects in the repository.
+
+<ParamField body="TargetFramework" param-type="string" show-location="false" required="true">Targets .NET `net10.0`.</ParamField>
+
+<ParamField body="Nullable" param-type="string" show-location="false" required="true">Enables nullable reference types.</ParamField>
+
+<ParamField body="ImplicitUsings" param-type="string" show-location="false" required="true">Enables implicit global using directives.</ParamField>
+
+<ParamField body="LangVersion" param-type="string" show-location="false" required="true">Uses the latest available C# language version.</ParamField>
+
+<ParamField body="Deterministic" param-type="boolean" show-location="false" required="true">Enables deterministic builds.</ParamField>
+
+<ParamField body="RestorePackagesWithLockFile" param-type="boolean" show-location="false" required="true">Enables NuGet lock files for repeatable package restores.</ParamField>
+
+<ParamField body="Configuration" param-type="string" show-location="false" required="true">Defaults builds to `Debug` unless another configuration is specified.</ParamField>
+
+<ParamField body="RuntimeIdentifierGraphPath" param-type="string" show-location="false">Uses `portable` in runtime identifier lock names when no runtime identifier is supplied.</ParamField>
+
+## Godot project
+
+Zeta uses a Windows-oriented Godot .NET project with a desktop management layout.
+
+<ParamField body="Godot version" param-type="string" show-location="false" required="true">Uses Godot `4.7` with C# support.</ParamField>
+
+<ParamField body="Renderer" param-type="string" show-location="false" required="true">Uses the `GL Compatibility` renderer.</ParamField>
+
+<ParamField body="Main scene" param-type="string" show-location="false" required="true">Starts from `Main.tscn`.</ParamField>
+
+<ParamField body="Viewport size" param-type="string" show-location="false" required="true">Sets the project viewport to `1440x900`.</ParamField>
+
+<ParamField body="Window override size" param-type="string" show-location="false" required="true">Uses `1366x850` as the desktop window override size.</ParamField>
+
+<ParamField body="Minimum window size" param-type="string" show-location="false" required="true">Prevents the window from shrinking below `1100x700`.</ParamField>
+
+<ParamField body="Stretch mode" param-type="string" show-location="false" required="true">Uses `canvas-item` stretching for the application layout.</ParamField>
+
+<ParamField body="Default clear color" param-type="string" show-location="false" required="true">Uses a dark clear color for the project background.</ParamField>
+
+## Export configuration
+
+The export preset produces an unsigned Windows x86_64 build.
+
+<ParamField body="Platform" param-type="string" show-location="false" required="true">Exports for Windows Desktop on `x86_64`.</ParamField>
+
+<ParamField body="Resource mode" param-type="string" show-location="false" required="true">Includes all project resources in the export.</ParamField>
+
+<ParamField body="Signing" param-type="string" show-location="false" required="true">Produces an unsigned executable.</ParamField>
+
+<ParamField body="Embedded PCK" param-type="boolean" show-location="false" required="true">Disables the embedded PCK. The export keeps the PCK separate from the executable.</ParamField>
+
+<ParamField body="Excluded files" param-type="string" show-location="false" required="true">Excludes build output and lock files from the exported resources.</ParamField>
+
+<ParamField body="Texture compression" param-type="string" show-location="false" required="true">Uses S3TC and BPTC texture compression.</ParamField>
+
+<ParamField body="Debug symbols" param-type="boolean" show-location="false" required="true">Does not include debug symbols.</ParamField>
+
+<ParamField body="Output path" param-type="string" show-location="false" required="true">Writes the executable to `artifacts/windows/Zeta.exe`.</ParamField>
+
+## Application preferences
+
+Zeta stores preferences at `%LOCALAPPDATA%\Zeta\Synthetic-v1\preferences.cfg`.
+
+<ParamField body="Workspace view" param-type="string" show-location="false" required="true">Selects the warehouse view or the management view as the preferred workspace.</ParamField>
+
+<ParamField body="Reduced motion" param-type="boolean" show-location="false" required="true">Reduces motion effects in the application interface.</ParamField>
+
+<ParamField body="Font scale" param-type="string" show-location="false" required="true">Selects a font scale of `100%`, `150%`, or `200%`.</ParamField>
+
+## Command-line options
+
+Pass command-line options after the Godot project arguments.
+
+| Option | Description |
+| --- | --- |
+| `--smoke-test` | Runs the isolated end-to-end smoke test, prints `ZETA_SMOKE_OK` on success, and exits. |
+| `--demo-preview` | Starts an isolated workspace for visual inspection. |
+| `--view=Warehouse\|Inventory\|Settings\|History` | Opens the application at the selected view. |
+| `--screenshot=<path>` | Captures a screenshot at the specified path. |
+
+<Callout kind="tip">
+
+`--smoke-test` and `--demo-preview` create isolated temporary workspaces. They do not use the normal persistent workspace under `%LOCALAPPDATA%\Zeta\Synthetic-v1`.
+
+</Callout>
+
+## Operational limits
+
+These limits are fixed prototype settings.
+
+| Setting | Limit |
+| --- | --- |
+| Maximum products | `200` |
+| Maximum import size | `10 MB` |
+| Maximum import rows | `10,000` |
+| Maximum valid preview page | `50` rows |
+| Maximum visible warehouse shelves | `50` |
+| Maximum visible warehouse orders | `100` total, with `25` per processing stage |
+| Maximum reservation batch | `100` orders |
+| Order freshness limit | `60` seconds |
+| Reader concurrency | `4` readers |
+| Writer acquisition timeout | `5` seconds |
+| SQLite command timeout | `5` seconds |
+| Automatic backup interval | `15` minutes of unlocked changed operation |
+| Available-stock expiration interval | `30` seconds |
+| Clipboard cleanup delay | `30` seconds |
+| Shutdown wait budget | `5` seconds |
+
+These limits are hard-coded in the prototype and cannot be changed without modifying the application source.
