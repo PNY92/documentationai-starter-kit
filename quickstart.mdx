@@ -1,107 +1,90 @@
 ---
 title: Quickstart
-description: Get Zeta running on Windows in under 15 minutes — clone, restore dependencies, build, run, and verify with a smoke test.
+description: >-
+  Get Zeta running on Windows in under 15 minutes — clone, restore dependencies,
+  build, run, and verify with a smoke test.
 ---
-
 ## Set up and run Zeta
 
 Set up and run the Zeta Synthetic Warehouse prototype on Windows, then verify the complete application flow with an isolated smoke test.
 
 ## Prerequisites
 
-<Callout kind="info">
+<Callout kind="info" collapsed="false">
+  Install the following before you begin:
 
-Install the following before you begin:
+  - .NET SDK `10.0.401`
+  - Godot `4.7.2` with .NET support
+  - Windows 10 or Windows 11
+  - Git
 
-- .NET SDK `10.0.401`
-- Godot `4.7.2` with .NET support
-- Windows 10 or Windows 11
-- Git
-
-Zeta is a Windows-first application. Normal execution is rejected on non-Windows platforms.
-
+  Zeta is a Windows-first application. Normal execution is rejected on non-Windows platforms.
 </Callout>
 
 ## Set up the project
 
 <Steps>
   <Step title="Clone the repository" icon="download" title-type="h3">
-
-Clone the repository into a local working directory, then open a terminal at the repository root.
-
+    Clone the repository into a local working directory, then open a terminal at the repository root.
   </Step>
 
   <Step title="Restore dependencies" icon="package" title-type="h3">
+    Restore the locked dependency set:
 
-Restore the locked dependency set:
+    ```powershell
+    dotnet restore Zeta.slnx --locked-mode
+    ```
 
-```powershell
-dotnet restore Zeta.slnx --locked-mode
-```
-
-The restore completes without changing the locked dependency versions.
-
+    The restore completes without changing the locked dependency versions.
   </Step>
 
   <Step title="Build the solution" icon="code" title-type="h3">
+    Build the solution with a single MSBuild worker:
 
-Build the solution with a single MSBuild worker:
+    ```powershell
+    dotnet build Zeta.slnx --no-restore -m:1
+    ```
 
-```powershell
-dotnet build Zeta.slnx --no-restore -m:1
-```
-
-A successful build produces the compiled .NET projects without restoring dependencies again.
-
+    A successful build produces the compiled .NET projects without restoring dependencies again.
   </Step>
 
   <Step title="Run the tests" icon="check-circle" title-type="h3">
+    Run the integration and integrity test suite:
 
-Run the integration and integrity test suite:
+    ```powershell
+    dotnet test tests/Zeta.Tests/Zeta.Tests.csproj --no-build --no-restore
+    ```
 
-```powershell
-dotnet test tests/Zeta.Tests/Zeta.Tests.csproj --no-build --no-restore
-```
-
-The tests use temporary SQLite stores and ephemeral encryption keys. A successful run reports that all tests passed.
-
+    The tests use temporary SQLite stores and ephemeral encryption keys. A successful run reports that all tests passed.
   </Step>
 
   <Step title="Launch the Godot application" icon="play-circle" title-type="h3">
+    Start the application from the repository root:
 
-Start the application from the repository root:
+    ```powershell
+    Godot --path src/Zeta.Godot
+    ```
 
-```powershell
-Godot --path src/Zeta.Godot
-```
-
-You can also open `src/Zeta.Godot` in the Godot editor and run the project from there. The application creates its local synthetic workspace on first startup and seeds demo products, stock, and orders when the store is empty.
-
+    You can also open `src/Zeta.Godot` in the Godot editor and run the project from there. The application creates its local synthetic workspace on first startup and seeds demo products, stock, and orders when the store is empty.
   </Step>
 
   <Step title="Run a smoke test" icon="terminal" title-type="h3">
+    Run the end-to-end validation flow without opening the interactive application:
 
-Run the end-to-end validation flow without opening the interactive application:
+    ```powershell
+    godot --headless --path src/Zeta.Godot -- --smoke-test
+    ```
 
-```powershell
-godot --headless --path src/Zeta.Godot -- --smoke-test
-```
-
-Confirm that the process prints `ZETA_SMOKE_OK` before it exits.
-
+    Confirm that the process prints `ZETA_SMOKE_OK` before it exits.
   </Step>
 </Steps>
 
-<Callout kind="tip">
-
-The `--smoke-test` option creates an isolated temporary workspace, runs a real end-to-end flow, creates an encrypted snapshot, prints `ZETA_SMOKE_OK`, and exits. It does not modify your normal workspace under `%LOCALAPPDATA%\Zeta\Synthetic-v1`.
-
+<Callout kind="tip" collapsed="false">
+  The `--smoke-test` option creates an isolated temporary workspace, runs a real end-to-end flow, creates an encrypted snapshot, prints `ZETA_SMOKE_OK`, and exits. It does not modify your normal workspace under `%LOCALAPPDATA%\Zeta\Synthetic-v1`.
 </Callout>
 
-<Callout kind="alert">
-
-Normal execution is rejected on non-Windows platforms. The `--smoke-test` and `--demo-preview` options work cross-platform by using isolated temporary workspaces.
-
+<Callout kind="alert" collapsed="false">
+  Normal execution is rejected on non-Windows platforms. The `--smoke-test` and `--demo-preview` options work cross-platform by using isolated temporary workspaces.
 </Callout>
 
 ## Where data is stored
@@ -139,24 +122,17 @@ Godot --path src/Zeta.Godot -- --view=Inventory
 
 ## Next steps
 
-<Columns cols={3}>
+<Columns cols="3">
+  <Card title="Core Concepts" href="/concepts" icon="book-open" horizontal="false">
+    Understand Zeta's synthetic commerce model, inventory states, order workflows, and recovery boundaries.
+  </Card>
 
-<Card title="Core Concepts" href="/concepts" icon="book-open" horizontal="false">
+  <Card title="Configuration" href="/reference/configuration" icon="settings" horizontal="false">
+    Review SDK, Godot, storage, runtime, and prototype limit settings.
+  </Card>
 
-Understand Zeta's synthetic commerce model, inventory states, order workflows, and recovery boundaries.
-
-</Card>
-
-<Card title="Configuration" href="/reference/configuration" icon="settings" horizontal="false">
-
-Review SDK, Godot, storage, runtime, and prototype limit settings.
-
-</Card>
-
-<Card title="Developer setup" href="/help-center/guides/setup-project" icon="terminal" horizontal="false">
-
-Follow the project setup guidance for continued development and validation.
-
-</Card>
-
+  <Card title="Developer setup" href="/help-center/guides/setup-project" icon="terminal" horizontal="false">
+    Follow the project setup guidance for continued development and validation.
+  </Card>
 </Columns>
+
