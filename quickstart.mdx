@@ -112,7 +112,7 @@ After you launch the app, it creates three synthetic products, twelve units per 
 
 ### Navigate the workspace
 
-Use the Orders, Inventory, Exceptions, History, and Settings screens to inspect and manage the synthetic workspace. Press `F2` to switch between the Manage and Warehouse views.
+Use the Orders, Inventory, Exceptions, History, and Settings screens to inspect and manage the synthetic workspace. Press `F2` to cycle between the Management, Warehouse, and Shop views.
 
 The global controls work as follows:
 
@@ -157,6 +157,8 @@ The Inventory screen shows available, reserved, quarantined, delivered, invalid,
 
 Press `F2` to toggle the 3D warehouse view. Shelves show product stock, packages group around receiving, packing, review, and dispatch stations, and colors indicate order states. Click shelves, packages, or stations to navigate. Right-drag to pan and use the mouse wheel to zoom. See [Warehouse View](/workflows/warehouse-view) for the full control reference.
 
+Press `F2` again to switch to the Shop view, which visualizes synthetic orders as arriving customers in a storefront. See [Shop View](/workflows/shop-view) for details.
+
 ### Handle exceptions
 
 Some seeded orders demonstrate edge cases: `DEMO-1004` is unpaid and held, `DEMO-1006` is unsupported and held, `DEMO-1005` requests more stock than available and shows a shortage, and `DEMO-1008` uses an unmapped item/model. Uncertain delivery outcomes move orders to `REVIEW_REQUIRED` and quarantine units. See [Exceptions & Recovery](/workflows/exceptions-recovery) for the full workflow.
@@ -189,7 +191,7 @@ Run the application with these options after the Godot project arguments:
 
 - `--smoke-test`: Run the isolated end-to-end smoke test and exit.
 - `--demo-preview`: Open a visual preview using an isolated temporary workspace.
-- `--view=Warehouse|Inventory|Settings|History`: Select the initial application view.
+- `--view=Warehouse|Shop|Inventory|Settings|History`: Select the initial application view.
 - `--screenshot=<path>`: Capture the selected preview or application view to the specified path.
 
 For example, launch directly into the inventory view:

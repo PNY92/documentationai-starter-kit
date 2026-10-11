@@ -1,0 +1,83 @@
+---
+title: Shop View
+description: Navigate the Shop storefront and understand how synthetic orders appear as arriving customers in the queue.
+---
+
+## Use the Shop view
+
+The Shop view is the third workspace view alongside Management and Warehouse. It is a presentation-only storefront projection of existing synthetic orders: it visualizes orders as arriving customers in a shop but does not create, modify, or process them. All business actions happen through the normal order detail window.
+
+## What the shop shows
+
+The Shop view presents synthetic order activity as a storefront layout:
+
+- **Storefront scene:** Includes an entrance and exit.
+- **Service counter:** Selectable counter for opening the first order in the main queue.
+- **Product displays:** Illustrative displays for the products represented in the storefront.
+- **Order queue area:** Main queue with up to 40 visible customers.
+- **Waiting/review area:** Area with up to 20 visible customers whose orders need attention or are not ready for normal processing.
+- **Customer list:** Scrollable sidebar list with rows that include tooltips for the order ID, quantity, state, marketplace status, and hold reason.
+
+The Shop view does not replace the Management screens. Use the order detail window to perform business actions on an order.
+
+## Queue classification
+
+The Shop separates existing orders into the main queue and the waiting/review area based on their current committed state:
+
+- **Main queue:** Contains up to 40 orders that are paid, supported, nonterminal, not held, and have a `READY_TO_SHIP` marketplace status.
+- **Waiting/review:** Contains up to 20 orders that are unpaid, unsupported, blocked, failed, review-required, held, or have a marketplace status other than `READY_TO_SHIP`.
+
+The Shop tracks up to 60 customers in total: 40 in the main queue and 20 in waiting/review. The sidebar shows exact queue and waiting totals, including orders beyond those visible scene limits, so the full queue size remains visible when overflow occurs.
+
+## How customers appear and move
+
+New customers enter from the entrance and walk to their assigned positions in the main queue or waiting/review area. Arrivals are staggered approximately one second apart so that customers do not appear at the same time.
+
+When an order moves between groups, the Shop assigns the customer a new destination. For example, a reservation that discovers a shortage can move an order to waiting/review, where its customer walks to a new position. All movement is purely visual and does not reserve stock, approve orders, or perform any other business action.
+
+## Delivery departures
+
+When an order becomes terminal, the next Shop snapshot includes it as a departure. Terminal states are `FULFILLED`, `CANCELLED`, `CLOSED_EXTERNAL`, and `CLOSED_EXCEPTION`.
+
+The customer's label changes to **Delivery recorded**, and the customer walks to the exit before being removed from the scene. The label says **Delivery recorded** rather than **buyer received** because the application records synthetic delivery evidence, not verified buyer receipt.
+
+## Interaction controls
+
+Use the following controls to inspect the storefront and open order details:
+
+| Control | Action |
+| --- | --- |
+| Left-click a customer | Open the order detail window for that customer. |
+| Left-click the service counter | Open the first order in the main queue, or show a message if the queue is empty. |
+| Click a sidebar list row | Open the order detail for that customer. Tooltips show a summary. |
+| Right-click or middle-button drag | Pan the camera. |
+| Mouse wheel | Zoom in or out. |
+| `F2` | Cycle between Management, Warehouse, and Shop views. |
+
+If the main queue is empty, clicking the service counter shows: `The shop queue is empty. Waiting customers remain selectable.` Waiting/review customers remain selectable from the scene and sidebar.
+
+## Reduced-motion mode
+
+Enable reduced-motion mode in Settings to skip customer walking animations. New customers appear directly at their destinations, and departing customers are removed immediately instead of animating to the exit.
+
+Zeta saves the reduced-motion preference in the same configuration file as the selected view.
+
+## What the shop does not affect
+
+<Callout kind="alert">
+
+The Shop view is a presentation-only visualization. It does not create orders, reserve stock, approve deliveries, or modify any business state. All business actions happen through the normal order detail window opened by clicking a customer or the service counter.
+
+</Callout>
+
+## Toggling views
+
+Press `F2` to cycle through the workspace views in this order: Management, Warehouse, and Shop. Zeta remembers the selected view in application preferences.
+
+To start Zeta directly in the Shop view, pass the case-insensitive `--view=Shop` command-line option:
+
+```text
+Zeta.exe --view=Shop
+```
+
+The older `ui/warehouse=true` preference maps to the Warehouse view. If no selected view is saved, Zeta starts in the Management view.

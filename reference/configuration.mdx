@@ -100,7 +100,7 @@ The export script restores the Windows x64 export dependencies in locked mode be
 
 Zeta stores preferences at `%LOCALAPPDATA%\Zeta\Synthetic-v1\preferences.cfg`.
 
-<ParamField body="Workspace view" param-type="string" show-location="false" required="true">Selects the warehouse view or the management view as the preferred workspace.</ParamField>
+<ParamField body="Workspace view" param-type="string" show-location="false" required="true">Selects the Management, Warehouse, or Shop view as the preferred workspace.</ParamField>
 
 <ParamField body="Reduced motion" param-type="boolean" show-location="false" required="true">Reduces motion effects in the application interface.</ParamField>
 
@@ -114,7 +114,7 @@ Pass command-line options after the Godot project arguments.
 | --- | --- |
 | `--smoke-test` | Runs the isolated end-to-end smoke test, prints `ZETA_SMOKE_OK` on success, and exits. |
 | `--demo-preview` | Starts an isolated workspace for visual inspection. |
-| `--view=Warehouse\|Inventory\|Settings\|History` | Opens the application at the selected view. |
+| `--view=Warehouse\|Shop\|Inventory\|Settings\|History` | Opens the application at the selected view. |
 | `--screenshot=<path>` | Captures a screenshot at the specified path. |
 
 <Callout kind="tip">

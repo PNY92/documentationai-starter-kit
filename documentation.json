@@ -88,6 +88,11 @@
                 "title": "Warehouse View",
                 "path": "workflows/warehouse-view",
                 "icon": "box"
+              },
+              {
+                "title": "Shop View",
+                "path": "workflows/shop-view",
+                "icon": "store"
               }
             ]
           },
