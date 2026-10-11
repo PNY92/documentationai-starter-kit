@@ -1,11 +1,14 @@
 ---
 title: Introduction
-description: Discover Zeta, a Windows-first Godot .NET desktop prototype for managing synthetic digital inventory and orders with encrypted local persistence.
+description: >-
+  Discover Zeta, a Windows-first Godot .NET desktop prototype for managing
+  synthetic digital inventory and orders with encrypted local persistence.
 ---
-
 ## Manage a synthetic warehouse
 
 Use Zeta to manage synthetic inventory, simulate order fulfillment workflows, and visualize committed warehouse state through conventional management screens or an optional 3D view. The prototype combines local persistence, deterministic command handling, recovery tooling, and synthetic marketplace and delivery adapters in one Windows desktop application.
+
+<Image src="https://blob-cdn.documentation.ai/org-9e5e7e8e-32f8-45d6-afb6-35fe38a5c0ce/doc-a10d9e5a-26cb-4dc3-ad8c-892c6e0717bc/1791724635962-si8dfi28w9c-Screenshot-2026-10-11-211641.png?fm=auto&auto=compress%2Cformat" width="1353" height="837" alt="Screenshot 2026 10 11 211641" />
 
 ## What is Zeta?
 
@@ -26,10 +29,8 @@ Every value that represents marketplace or fulfillment data must remain syntheti
 
 Zeta enforces this boundary across imports, order workflows, evidence, persistence, and test fixtures. Do not enter real credentials, customer information, delivery codes, or marketplace identifiers.
 
-<Callout kind="alert">
-
-Zeta does not connect to Shopee or any other live marketplace. Treat every record, code, recipient, order, and evidence reference as synthetic, and use the `DEMO-` prefix wherever the application requires it.
-
+<Callout kind="alert" collapsed="false">
+  Zeta does not connect to Shopee or any other live marketplace. Treat every record, code, recipient, order, and evidence reference as synthetic, and use the `DEMO-` prefix wherever the application requires it.
 </Callout>
 
 ## What Zeta is not
@@ -74,90 +75,61 @@ CommerceService
 
 ## Key capabilities
 
-<Columns cols={3}>
-
+<Columns cols="3">
   <Card title="Synthetic inventory management" href="/concepts" icon="database" horizontal="false">
-
     Create products, import synthetic codes, track stock states, configure exact mappings, and identify low-stock products.
-
   </Card>
 
   <Card title="Order lifecycle simulation" href="/concepts" icon="bar-chart" horizontal="false">
-
     Observe synthetic orders, reserve complete order lines atomically, approve delivery, simulate outcomes, and manage exceptions.
-
   </Card>
 
   <Card title="3D warehouse visualization" href="/concepts" icon="box" horizontal="false">
-
     Inspect committed inventory and order projections in an optional orthographic warehouse view without changing business state.
-
   </Card>
 
   <Card title="Encrypted local persistence" href="/concepts" icon="lock" horizontal="false">
-
     Store inventory and operational data in encrypted local SQLite storage protected by Windows user-scoped key material.
-
   </Card>
 
   <Card title="Conservative recovery" href="/concepts" icon="shield" horizontal="false">
-
     Detect interrupted delivery attempts, quarantine potentially exposed units, and move uncertain orders to review instead of retrying automatically.
-
   </Card>
 
   <Card title="Audit trail" href="/concepts" icon="book-open" horizontal="false">
-
     Record business actions, delivery evidence, command results, and recovery decisions in protected audit history.
-
   </Card>
-
 </Columns>
 
 ## Explore the project
 
 <Steps>
-
   <Step title="Run the prototype" icon="play-circle" title-type="p">
-
     Start the Windows desktop application and review the seeded synthetic products, stock, and orders.
-
   </Step>
 
   <Step title="Follow a synthetic order" icon="zap" title-type="p">
-
     Refresh an order, reserve its mapped inventory, approve delivery, and choose a simulated outcome. The application keeps uncertain outcomes available for review.
-
   </Step>
 
   <Step title="Inspect the architecture" icon="code" title-type="p">
-
     Trace commands from the Godot interface through `CommerceService`, the core ports, EF Core persistence, and the SQLite store.
-
   </Step>
-
 </Steps>
 
 ## Continue with the documentation
 
-<Columns cols={3}>
-
+<Columns cols="3">
   <Card title="Quickstart" href="/quickstart" icon="rocket" horizontal="false">
-
     Set up the development environment and run the prototype.
-
   </Card>
 
   <Card title="Core Concepts" href="/concepts" icon="book-open" horizontal="false">
-
     Learn how inventory, orders, reservations, delivery outcomes, and recovery fit together.
-
   </Card>
 
   <Card title="Architecture" href="/architecture" icon="code" horizontal="false">
-
     Review the layers, ports, adapters, persistence model, and application boundaries.
-
   </Card>
-
 </Columns>
+
