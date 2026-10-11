@@ -90,6 +90,18 @@ The export preset produces an unsigned Windows x86_64 build.
 
 <ParamField body="Output path" param-type="string" show-location="false" required="true">Writes the executable to `artifacts/windows/Zeta.exe`.</ParamField>
 
+### Development export preset
+
+<ParamField body="Development preset" param-type="string" show-location="false" required="true">Exports a separate **Windows Development** build using the `zeta_development` Godot feature tag. Development packages are written to `artifacts/windows-development/Zeta.exe` and include `development.json` and `DEVELOPMENT.md` alongside the executable.</ParamField>
+
+<ParamField body="Development archive" param-type="string" show-location="false" required="true">Development packages are archived as `Zeta-<version>-windows-x64-development.zip` under `artifacts/release-development`.</ParamField>
+
+<Callout kind="info">
+
+The Standard and Development builds use separate Godot export presets, output directories, and archive names. Version-tag releases publish the Standard package. Development packages are built separately.
+
+</Callout>
+
 <Callout kind="info">
 
 The export script restores the Windows x64 export dependencies in locked mode before performing the Godot export. This ensures the correct native dependencies (including `e_sqlite3.dll`) are copied into the export output. Do not bypass locked mode during export.
@@ -99,6 +111,12 @@ The export script restores the Windows x64 export dependencies in locked mode be
 ## Application preferences
 
 Zeta stores preferences at `%LOCALAPPDATA%\Zeta\Synthetic-v1\preferences.cfg`.
+
+<Callout kind="info">
+
+Development builds use a separate data root at `%LOCALAPPDATA%\Zeta\Development-v1`. The Development directory holds its own database, DPAPI keys, preferences, and backups — entirely isolated from the Standard workspace.
+
+</Callout>
 
 <ParamField body="Workspace view" param-type="string" show-location="false" required="true">Selects the Management, Warehouse, or Shop view as the preferred workspace.</ParamField>
 
@@ -116,10 +134,67 @@ Pass command-line options after the Godot project arguments.
 | `--demo-preview` | Starts an isolated workspace for visual inspection. |
 | `--view=Warehouse\|Shop\|Inventory\|Settings\|History` | Opens the application at the selected view. |
 | `--screenshot=<path>` | Captures a screenshot at the specified path. |
+| `--development` | Enables the Development environment for editor or source runs. Exported executables are already configured for their build environment and cannot switch at runtime. |
+| `--expect-development` | Asserts that the running build is a Development build. Fails startup if the build does not match. |
+| `--expect-standard` | Asserts that the running build is a Standard build. Fails startup if the build does not match. |
 
 <Callout kind="tip">
 
 `--smoke-test` and `--demo-preview` create isolated temporary workspaces. They do not use the normal persistent workspace under `%LOCALAPPDATA%\Zeta\Synthetic-v1`.
+
+</Callout>
+
+## Development configuration
+
+Development builds read a `development.json` file placed beside the executable. The file configures shop movement settings, development products with marketplace item/model mappings, synthetic stock quantities, and observed orders. Edit it through the Settings screen or edit the file directly and reload.
+
+### Schema fields
+
+<ParamField body="schemaVersion" param-type="string" show-location="false" required="true">Must be `1`.</ParamField>
+
+<ParamField body="shop.walkSpeed" param-type="number" show-location="false" required="true">Customer walk speed. Range: `0.1`–`20`.</ParamField>
+
+<ParamField body="shop.arrivalIntervalSeconds" param-type="number" show-location="false" required="true">Seconds between customer arrivals. Range: `0.1`–`30`.</ParamField>
+
+### Validation rules
+
+<Callout kind="alert">
+
+- Maximum `200` products and `200` orders.
+- Maximum `10,000` total configured stock units.
+- Product thresholds and quantities are bounded to `10,000`.
+- Order line quantities range from `1` to `10,000`.
+- Product names, identifiers, order IDs, and recipients must begin with `DEMO-`.
+- Identifiers must be `6`–`80` characters with no control characters.
+- Supported order statuses: `READY_TO_SHIP`, `UNPAID`, `COMPLETED`, `CANCELLED`.
+- Unknown JSON properties are rejected.
+- Comments and trailing commas are accepted.
+- Files over `1 MB` are rejected.
+- Invalid JSON, unsupported schema versions, and invalid values are rejected.
+
+</Callout>
+
+### Fixture creation
+
+<Callout kind="info">
+
+- Fixture creation is additive and replay-safe: existing products and orders are preserved.
+- Existing product thresholds are preserved.
+- Increasing stock adds only previously unseen units; decreasing stock does not delete existing units.
+- Consumed or exposed units are not replenished.
+- Existing order facts and versions are not overwritten.
+- Removing an entry from the configuration does not delete the entity.
+- Fixture creation does not reserve, approve, deliver, or award XP.
+
+</Callout>
+
+### Settings editor
+
+Development builds add a Development configuration section to the Settings screen with a JSON editor, **Save development configuration**, **Reload development configuration**, and **Create missing fixture entities**. Saving validates the candidate configuration before replacing the existing file. Reloading reads external edits. Invalid edits leave the previous saved configuration intact. Shop movement changes apply when opening the Shop view.
+
+<Callout kind="alert">
+
+Movement settings (`walkSpeed` and `arrivalIntervalSeconds`) are presentation-only. They do not change fulfillment capacity, inventory quantities, priority, queue limits, order state transitions, stock allocation, or delivery behavior.
 
 </Callout>
 

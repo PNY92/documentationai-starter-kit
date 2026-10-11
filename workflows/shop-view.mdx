@@ -35,6 +35,12 @@ New customers enter from the entrance and walk to their assigned positions in th
 
 When an order moves between groups, the Shop assigns the customer a new destination. For example, a reservation that discovers a shortage can move an order to waiting/review, where its customer walks to a new position. All movement is purely visual and does not reserve stock, approve orders, or perform any other business action.
 
+<Callout kind="info">
+
+In Development builds, customer walk speed and the interval between arrivals are configurable through the development configuration file. These settings are presentation-only and do not affect fulfillment capacity, inventory quantities, order processing, or stock allocation. See [Configuration](/reference/configuration#development-configuration) for schema details.
+
+</Callout>
+
 ## Delivery departures
 
 When an order becomes terminal, the next Shop snapshot includes it as a departure. Terminal states are `FULFILLED`, `CANCELLED`, `CLOSED_EXTERNAL`, and `CLOSED_EXCEPTION`.

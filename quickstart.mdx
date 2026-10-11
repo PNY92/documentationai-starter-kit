@@ -23,6 +23,10 @@ The package includes the .NET runtime, SQLite native dependencies, and all Godot
   The package is an unsigned synthetic prototype. Windows SmartScreen may display a warning because the executable is not code-signed. Review the release notes before proceeding.
 </Callout>
 
+<Callout kind="info" collapsed="false">
+  A separate **Development** package (`Zeta-<tag>-windows-x64-development.zip`) is also available for builds that include configurable development fixtures and shop movement. Development builds use a separate data directory and display a visible Development badge. Most users should use the Standard package.
+</Callout>
+
 ## Prerequisites
 
 <Callout kind="info" collapsed="false">
@@ -185,6 +189,10 @@ The directory contains:
 
 The key file is protected for the current Windows user. Do not delete or replace it while the database is in use, because the application cannot decrypt existing inventory or backups without the original key material.
 
+<Callout kind="info" collapsed="false">
+  Development builds use a separate data directory at `%LOCALAPPDATA%\Zeta\Development-v1`. Data is not shared between Standard and Development builds.
+</Callout>
+
 ## Command-line options
 
 Run the application with these options after the Godot project arguments:
@@ -193,6 +201,9 @@ Run the application with these options after the Godot project arguments:
 - `--demo-preview`: Open a visual preview using an isolated temporary workspace.
 - `--view=Warehouse|Shop|Inventory|Settings|History`: Select the initial application view.
 - `--screenshot=<path>`: Capture the selected preview or application view to the specified path.
+- `--development`: Enable the Development environment for editor or source runs. Exported executables are already configured for their build environment.
+- `--expect-development`: Assert that the running build is a Development build. Fails startup if the build does not match.
+- `--expect-standard`: Assert that the running build is a Standard build. Fails startup if the build does not match.
 
 For example, launch directly into the inventory view:
 

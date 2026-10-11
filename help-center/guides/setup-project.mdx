@@ -118,6 +118,12 @@ The smoke test uses an isolated temporary workspace, exercises a real applicatio
 ZETA_SMOKE_OK
 ```
 
+<Callout kind="info">
+
+Development builds run an additional smoke test that verifies configuration loading, fixture replay, and the Settings JSON editor. A successful Development smoke test prints `ZETA_DEVELOPMENT_SMOKE_OK` in addition to `ZETA_SMOKE_OK`.
+
+</Callout>
+
 </Step>
 </Steps>
 
@@ -147,6 +153,16 @@ The script restores the Windows x64 export dependencies in locked mode, imports 
 
 The export is unsigned and must remain distributed as a complete folder.
 
+### Development export
+
+To export a Development build, pass the `-BuildEnvironment` parameter:
+
+```powershell
+.\scripts\Export-Windows.ps1 -Godot $env:GODOT -BuildEnvironment Development
+```
+
+The Development export uses the `Windows Development` Godot preset, writes to `artifacts/windows-development/`, and includes `development.json` and `DEVELOPMENT.md` alongside the executable.
+
 ### Package the export
 
 After exporting, create a distributable ZIP archive with a SHA-256 checksum:
@@ -160,6 +176,19 @@ The script validates that the exported directory contains the executable, PCK, r
 ```text
 artifacts/release/Zeta-v0.1.0-windows-x64.zip
 artifacts/release/Zeta-v0.1.0-windows-x64.zip.sha256
+```
+
+Development packages are created the same way:
+
+```powershell
+.\scripts\Package-Windows.ps1 -Version v0.1.0 -BuildEnvironment Development
+```
+
+This produces:
+
+```text
+artifacts/release-development/Zeta-v0.1.0-windows-x64-development.zip
+artifacts/release-development/Zeta-v0.1.0-windows-x64-development.zip.sha256
 ```
 
 ### Automated CI builds and releases
