@@ -143,9 +143,37 @@ Use the export script to create the Windows prototype package:
 .\scripts\Export-Windows.ps1
 ```
 
-The script imports the Godot project, performs a Windows release export, verifies that `Zeta.Godot.dll` and `e_sqlite3.dll` are present, copies license and notice files, and creates `RUN-PROTOTYPE.txt`.
+The script restores the Windows x64 export dependencies in locked mode, imports the Godot project, performs a Windows release export, verifies that `Zeta.Godot.dll` and `e_sqlite3.dll` are present, copies license and notice files, and creates `RUN-PROTOTYPE.txt`.
 
 The export is unsigned and must remain distributed as a complete folder.
+
+### Package the export
+
+After exporting, create a distributable ZIP archive with a SHA-256 checksum:
+
+```powershell
+.\scripts\Package-Windows.ps1 -Version v0.1.0
+```
+
+The script validates that the exported directory contains the executable, PCK, runtime, SQLite native library, required notices, and license files before creating:
+
+```text
+artifacts/release/Zeta-v0.1.0-windows-x64.zip
+artifacts/release/Zeta-v0.1.0-windows-x64.zip.sha256
+```
+
+### Automated CI builds and releases
+
+The repository includes a CI workflow that automatically builds, tests, and packages the Windows x64 export on every pull request and push to `main`. Non-release runs upload the package as a GitHub Actions artifact.
+
+Pushing a version tag publishes a GitHub prerelease with the Windows package:
+
+```powershell
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Supported tag formats are `vMAJOR.MINOR.PATCH` and `vMAJOR.MINOR.PATCH-suffix` (for example, `v0.1.0-rc.1`). The release includes the ZIP package and a SHA-256 checksum file. A failed build or validation prevents publication, and published releases cannot be overwritten.
 
 ## Project structure
 

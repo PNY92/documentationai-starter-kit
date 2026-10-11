@@ -2,10 +2,14 @@
   "name": "Zeta · Synthetic Warehouse",
   "colors": {
     "light": {
-      "brand": "#F97316"
+      "brand": "#0b32a8",
+      "heading": "#1a1a1a",
+      "text": "#374151"
     },
     "dark": {
-      "brand": "#FDBA74"
+      "brand": "#5c67ff",
+      "heading": "#f2f2f2",
+      "text": "#c1c1c1"
     }
   },
   "navigation": {
@@ -177,5 +181,6 @@
         ]
       }
     ]
-  }
+  },
+  "favicon": "https://blob-cdn.documentation.ai/org-9e5e7e8e-32f8-45d6-afb6-35fe38a5c0ce/doc-a10d9e5a-26cb-4dc3-ad8c-892c6e0717bc/1791721215708-p0lestmfnh-android-chrome-512x512.png?fm=auto&auto=compress%2Cformat"
 }
