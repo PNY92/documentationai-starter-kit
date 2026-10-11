@@ -8,6 +8,27 @@ description: >-
 
 Track updates and changes to the Zeta · Synthetic Warehouse documentation.
 
+<Update label="2026-10-12" description="Development environment & configurable fixtures" tags={["feature","release"]}>
+  ## What changed
+
+  ### New features
+
+  - **Development environment** — A separate Development build is now available alongside the Standard build. Development builds use a separate persistent data root (`Development-v1`), display a visible Development badge and window title, and support a configurable fixture set through `development.json`.
+  - **Development configuration file** — Development builds read a `development.json` file placed beside the executable. The file configures shop movement settings (`walkSpeed`, `arrivalIntervalSeconds`), development products with marketplace item/model mappings, synthetic stock quantities, and observed orders. Schema validation enforces size limits, naming conventions (`DEMO-` prefix), and supported order statuses.
+  - **Settings editor for development configuration** — Development builds add a Development configuration section to the Settings screen with a JSON editor, save, reload, and **Create missing fixture entities** actions. Saving validates before replacing the existing file.
+  - **Additive fixture creation** — Development fixtures are created additively and are replay-safe: existing products, orders, thresholds, and stock are preserved. Increasing stock adds only previously unseen units; decreasing does not delete. Consumed or exposed units are not replenished.
+  - **Configurable Shop movement** — In Development builds, customer walk speed and arrival interval are configurable. These settings are presentation-only and do not affect fulfillment, inventory, or order processing.
+  - **New command-line options** — `--development` enables the Development environment for editor runs. `--expect-development` and `--expect-standard` assert the build environment at startup.
+  - **Development packaging** — A separate `windows-x64-development` artifact is produced with its own Godot export preset, output directory, and archive name. Development packages include `development.json` and `DEVELOPMENT.md`.
+
+  ### Updated pages
+
+  - [Configuration](/reference/configuration) — Development export preset, data path, CLI options, and full `development.json` schema reference
+  - [Persistence](/architecture/persistence) — Development data directory
+  - [Shop View](/workflows/shop-view) — Configurable movement in Development builds
+  - [Quickstart](/quickstart) — Development package, data path, and new CLI options
+</Update>
+
 <Update label="2026-10-11" description="Fix HTML heading semantics in Kanbn task-writing skill" tags={["fix"]}>
   ## What changed
 

@@ -101,3 +101,9 @@ The directory contains:
 ```
 
 The `.owner` file provides exclusive process ownership. `owner.keys` contains the Windows DPAPI-protected key material used for encrypted inventory and backup operations. `preferences.cfg` stores application preferences, while encrypted backups provide same-user recovery data without storing the encryption keys inside the backup package.
+
+<Callout kind="info">
+
+Development builds use a separate data root at `%LOCALAPPDATA%\Zeta\Development-v1`. The Development directory holds its own database, ownership lock, DPAPI-protected keys, preferences, and encrypted backups, entirely isolated from the Standard workspace. Orders, stock, and fixtures created in one environment are not visible in the other.
+
+</Callout>
