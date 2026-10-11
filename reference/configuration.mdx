@@ -48,6 +48,8 @@ Zeta uses .NET SDK `10.0.401` and targets `net10.0`.
 
 <ParamField body="RuntimeIdentifierGraphPath" param-type="string" show-location="false">Uses `portable` in runtime identifier lock names when no runtime identifier is supplied.</ParamField>
 
+<ParamField body="ZetaLockRuntime" param-type="string" show-location="false">When set explicitly, overrides the inferred runtime identifier for locked dependency restores. The export script uses `win-x64` to restore the correct Windows export dependencies.</ParamField>
+
 ## Godot project
 
 Zeta uses a Windows-oriented Godot .NET project with a desktop management layout.
@@ -87,6 +89,12 @@ The export preset produces an unsigned Windows x86_64 build.
 <ParamField body="Debug symbols" param-type="boolean" show-location="false" required="true">Does not include debug symbols.</ParamField>
 
 <ParamField body="Output path" param-type="string" show-location="false" required="true">Writes the executable to `artifacts/windows/Zeta.exe`.</ParamField>
+
+<Callout kind="info">
+
+The export script restores the Windows x64 export dependencies in locked mode before performing the Godot export. This ensures the correct native dependencies (including `e_sqlite3.dll`) are copied into the export output. Do not bypass locked mode during export.
+
+</Callout>
 
 ## Application preferences
 

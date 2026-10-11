@@ -1,12 +1,26 @@
 ---
 title: Quickstart
 description: >-
-  Get Zeta running on Windows in under 15 minutes — clone, restore dependencies,
-  build, run, and verify with a smoke test.
+  Get Zeta running on Windows — download a pre-built release package or clone,
+  restore dependencies, build, run, and verify with a smoke test.
 ---
 ## Set up and run Zeta
 
 Set up and run the Zeta Synthetic Warehouse prototype on Windows, then verify the complete application flow with an isolated smoke test.
+
+## Download a pre-built package
+
+If you only need to run the prototype, download a self-contained Windows package from GitHub Releases instead of building from source:
+
+1. Go to the [Zeta releases page](https://github.com/PNY92/zeta/releases) and download the latest `Zeta-<tag>-windows-x64.zip` file.
+2. Extract **all files** from the ZIP archive.
+3. Run `Zeta.exe`.
+
+The package includes the .NET runtime, SQLite native dependencies, and all Godot resources. You do not need to install the .NET SDK, Godot, or a database server separately.
+
+<Callout kind="info" collapsed="false">
+  The package is an unsigned synthetic prototype. Windows SmartScreen may display a warning because the executable is not code-signed. Review the release notes before proceeding.
+</Callout>
 
 ## Prerequisites
 
