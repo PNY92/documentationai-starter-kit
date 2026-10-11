@@ -8,6 +8,24 @@ description: >-
 
 Track updates and changes to the Zeta · Synthetic Warehouse documentation.
 
+<Update label="2026-10-11" description="Configurable Development Environment" tags={["new feature"]}>
+  ## New features
+
+  - **Development environment** — A separate, configurable development build is now available alongside the Standard build. Define synthetic products, stock, orders, and Shop tuning through a JSON configuration file or edit them directly in Settings — no source code changes required. Data is fully isolated from the Standard workspace.
+  - **Development Windows artifact** — CI now produces a dedicated `windows-x64-development` package with its own checksum, distinct from the standard release.
+
+  ## Updates
+
+  - **Configurable Shop movement** — In the development environment, customer walk speed and arrival interval are adjustable via configuration.
+  - **Isolated data storage** — The development environment uses its own database, preferences, and encryption keys, keeping development data separate from the Standard workspace.
+
+  ## Learn more
+
+  - [Quickstart](/quickstart) — Getting started with Zeta
+  - [Configuration](/reference/configuration) — Configuration reference
+  - [Core Concepts](/concepts) — How the workspace fits together
+</Update>
+
 <Update label="2026-10-11" description="Fix HTML heading semantics in Kanbn task-writing skill" tags={["fix"]}>
   ## What changed
 
