@@ -1,8 +1,9 @@
 ---
 title: Quickstart
 description: >-
-  Get Zeta running on Windows — download a pre-built release package or clone,
-  restore dependencies, build, run, and verify with a smoke test.
+  Set up and launch Zeta on Windows, then walk through your first synthetic
+  order — navigate the workspace, reserve inventory, simulate delivery, and
+  explore the warehouse view.
 ---
 ## Set up and run Zeta
 
@@ -100,6 +101,69 @@ The package includes the .NET runtime, SQLite native dependencies, and all Godot
 <Callout kind="alert" collapsed="false">
   Normal execution is rejected on non-Windows platforms. The `--smoke-test` and `--demo-preview` options work cross-platform by using isolated temporary workspaces.
 </Callout>
+
+## Use the application
+
+After you launch the app, it creates three synthetic products, twelve units per product, and eight demonstration orders on first startup. You have a working workspace immediately.
+
+<Callout kind="info" collapsed="false">
+  All data is synthetic and uses `DEMO-` identifiers. There are no real deliveries, credentials, or external services. Zeta is a safe simulation.
+</Callout>
+
+### Navigate the workspace
+
+Use the Orders, Inventory, Exceptions, History, and Settings screens to inspect and manage the synthetic workspace. Press `F2` to switch between the Manage and Warehouse views.
+
+The global controls work as follows:
+
+- **Search** filters synthetic order IDs.
+- **State** filters orders by state.
+- **+ Synthetic order** creates a new `DEMO-` order.
+- **Lock** clears sensitive displays and pauses new work.
+
+### Process your first order
+
+<Steps>
+  <Step title="Open the Orders screen" title-type="h3">
+    Select a seeded order such as `DEMO-1001` to open its detail window.
+  </Step>
+
+  <Step title="Refresh the fixture observation" title-type="h3">
+    Click **Refresh fixture observation** to get the latest synthetic marketplace data. Zeta checks whether the order is paid, supported, freshly observed, has a verified recipient, and is mapped to an exact item/model variant.
+  </Step>
+
+  <Step title="Reserve inventory" title-type="h3">
+    Click **Reserve all lines**. Reservation is all-or-nothing: if any line lacks available stock, nothing is reserved. On success, units move from `AVAILABLE` to `RESERVED`.
+  </Step>
+
+  <Step title="Approve delivery" title-type="h3">
+    Click **Approve manual delivery**. This moves the order to `QUEUED` but does not deliver anything.
+  </Step>
+
+  <Step title="Simulate the delivery outcome" title-type="h3">
+    Choose a synthetic outcome: Confirmed, Rejected, Pending, Partial, Unknown, or CrashAfterEffect. Click **Simulate selected delivery outcome**. Each outcome changes the order and inventory state differently.
+  </Step>
+</Steps>
+
+<Callout kind="tip" collapsed="false">
+  For a full walkthrough of every order state, delivery outcome, and the reveal-and-attest flow, see the [Order Processing guide](/workflows/order-processing).
+</Callout>
+
+### Manage inventory
+
+The Inventory screen shows available, reserved, quarantined, delivered, invalid, and total units for each product. Create synthetic products with names that start with `DEMO-`, import synthetic codes from text or CSV files, and map products to exact item/model variants. See [Inventory Management](/workflows/inventory-management) for details.
+
+### Explore the warehouse view
+
+Press `F2` to toggle the 3D warehouse view. Shelves show product stock, packages group around receiving, packing, review, and dispatch stations, and colors indicate order states. Click shelves, packages, or stations to navigate. Right-drag to pan and use the mouse wheel to zoom. See [Warehouse View](/workflows/warehouse-view) for the full control reference.
+
+### Handle exceptions
+
+Some seeded orders demonstrate edge cases: `DEMO-1004` is unpaid and held, `DEMO-1006` is unsupported and held, `DEMO-1005` requests more stock than available and shows a shortage, and `DEMO-1008` uses an unmapped item/model. Uncertain delivery outcomes move orders to `REVIEW_REQUIRED` and quarantine units. See [Exceptions & Recovery](/workflows/exceptions-recovery) for the full workflow.
+
+### Adjust settings
+
+The Settings screen provides a fixture source online/offline toggle, reduced-motion mode, text scaling, encrypted snapshots and restore, interrupted-attempt recovery, and batch inspection. Offline mode permits local inspection and import, but refuses allocation, reveal, and delivery operations.
 
 ## Where data is stored
 
