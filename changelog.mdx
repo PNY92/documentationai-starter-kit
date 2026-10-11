@@ -1,99 +1,81 @@
 ---
 title: Changelog
-description: Track documentation updates and changes to the Zeta · Synthetic Warehouse documentation.
+description: >-
+  Track documentation updates and changes to the Zeta · Synthetic Warehouse
+  documentation.
 ---
-
 ## Documentation updates
 
 Track updates and changes to the Zeta · Synthetic Warehouse documentation.
 
-
-<Update label="2026-02-03" description="Windows x64 executable downloads" tags={["new feature", "release"]}>
-
-## New features
-
-**Windows x64 executable packages** — Zeta is now available as a downloadable Windows x64 ZIP package. You no longer need to build from source or install the .NET SDK, Godot, or a database server.
-
-- Download the ZIP, extract the complete folder, and run `Zeta.exe`.
-- The package bundles the .NET runtime, SQLite, and all Godot resources — no additional setup required.
-- Packages are published as GitHub prereleases when a version tag is pushed.
-
-See the [Quickstart](quickstart) guide for getting started.
-=======
 <Update label="2026-01-27" description="Shop Workspace & Visual Order Queues" tags={["feature"]}>
+  ## What changed
 
-## What changed
+  ### New features
 
-### New features
+  - **Shop workspace** — A new visual storefront where synthetic orders appear as arriving customers. Switch between Management, Warehouse, and Shop using the view buttons or the **F2** key. Your last selected view is saved between sessions.
+  - **Order queue and waiting area** — Orders are split into a main queue (paid, ready to ship) and a separate waiting/review area (unpaid, unsupported, held, or blocked). Each customer shows its real status so you can see exactly what needs attention.
+  - **Reduced-motion mode** — New accessibility setting that skips walking and departure animations, placing customers directly in position while keeping all order controls available.
 
-- **Shop workspace** — A new visual storefront where synthetic orders appear as arriving customers. Switch between Management, Warehouse, and Shop using the view buttons or the **F2** key. Your last selected view is saved between sessions.
-- **Order queue and waiting area** — Orders are split into a main queue (paid, ready to ship) and a separate waiting/review area (unpaid, unsupported, held, or blocked). Each customer shows its real status so you can see exactly what needs attention.
-- **Reduced-motion mode** — New accessibility setting that skips walking and departure animations, placing customers directly in position while keeping all order controls available.
+  ### Updates
 
-### Updates
+  - **F2 now cycles three views** — Management, Warehouse, and Shop.
+  - **Command-line preview** — Use `--demo-preview --view=Shop` to launch directly into the Shop.
+  - **Queue capacity and overflow** — The Shop shows up to 40 main-queue and 20 waiting-area customers, with exact overflow counts so totals are always visible.
 
-- **F2 now cycles three views** — Management, Warehouse, and Shop.
-- **Command-line preview** — Use `--demo-preview --view=Shop` to launch directly into the Shop.
-- **Queue capacity and overflow** — The Shop shows up to 40 main-queue and 20 waiting-area customers, with exact overflow counts so totals are always visible.
+  ### Learn more
 
-### Learn more
+  - [Quickstart](/quickstart) — Getting started with workspace views
+  - [Order Processing](/workflows/order-processing) — How orders move through the system
+  - [Warehouse View](/workflows/warehouse-view) — The existing warehouse workspace
+</Update>
 
-- [Quickstart](/quickstart) — Getting started with workspace views
-- [Order Processing](/workflows/order-processing) — How orders move through the system
-- [Warehouse View](/workflows/warehouse-view) — The existing warehouse workspace
-  </Update>
+<Update label="2026-02-03" description="Windows x64 executable downloads" tags={["new feature","release"]}>
+  ## New features
 
-<Update label="2026-02-03" description="Windows x64 executable downloads" tags={["new feature", "release"]}>
+  **Windows x64 executable packages** — Zeta is now available as a downloadable Windows x64 ZIP package. You no longer need to build from source or install the .NET SDK, Godot, or a database server.
 
-## New features
+  - Download the ZIP, extract the complete folder, and run `Zeta.exe`.
+  - The package bundles the .NET runtime, SQLite, and all Godot resources — no additional setup required.
+  - Packages are published as GitHub prereleases when a version tag is pushed.
 
-**Windows x64 executable packages** — Zeta is now available as a downloadable Windows x64 ZIP package. You no longer need to build from source or install the .NET SDK, Godot, or a database server.
-
-- Download the ZIP, extract the complete folder, and run `Zeta.exe`.
-- The package bundles the .NET runtime, SQLite, and all Godot resources — no additional setup required.
-- Packages are published as GitHub prereleases when a version tag is pushed.
-
-See the [Quickstart](quickstart) guide for getting started.
-
+  See the [Quickstart](quickstart) guide for getting started.
 </Update>
 
 <Update label="2026-01-26" description="Documentation Rewrite" tags={["docs"]}>
+  ## What changed
 
-## What changed
+  Rewrote all documentation pages from placeholder Starter Kit content to real Zeta · Synthetic Warehouse content based on codebase analysis.
 
-Rewrote all documentation pages from placeholder Starter Kit content to real Zeta · Synthetic Warehouse content based on codebase analysis.
+  Added documentation for:
 
-Added documentation for:
+  - Domain Model
+  - Order State Machine
+  - Persistence
+  - Security
+  - Inventory Management
+  - Order Processing
+  - Exceptions & Recovery
+  - Warehouse View
+  - Configuration
+  - Application API
 
-- Domain Model
-- Order State Machine
-- Persistence
-- Security
-- Inventory Management
-- Order Processing
-- Exceptions & Recovery
-- Warehouse View
-- Configuration
-- Application API
+  Updated:
 
-Updated:
+  - Introduction
+  - Quickstart
+  - Core Concepts
+  - Access & Security
+  - Developer Setup
+  - FAQ
+  - Troubleshooting
 
-- Introduction
-- Quickstart
-- Core Concepts
-- Access & Security
-- Developer Setup
-- FAQ
-- Troubleshooting
-
-Removed placeholder component pages and sample endpoints.
-
+  Removed placeholder component pages and sample endpoints.
 </Update>
 
 <Update label="2026-01-26" description="Initial Documentation" tags={["initial"]}>
+  ## What changed
 
-## What changed
-
-Created the original Starter Kit documentation site with placeholder content.
-
+  Created the original Starter Kit documentation site with placeholder content.
 </Update>
+
